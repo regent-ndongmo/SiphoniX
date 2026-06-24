@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  # The Autonomic Manager (Sidecar)
+  adaptable-teastore-image:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    container_name: adaptable-teastore-image
+    environment:
+      PORT: 8080
+      HOST_NAME: "adaptable-teastore-image"
+      REGISTRY_HOST: "registry"
+      CATALINA_OPTS: ${CATALINA_OPTS:--agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:}${IMAGE_DEBUG_PORT:-8003}
+      TARGET_URL: "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest"
+    ports:
+      - "8080:8080"
+      - "8003:8003"
+    expose:
+      - "8080"
+      - "8003"
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - image-network
+
+networks:
+  image-network:
+    name: image-network
+    driver: bridge

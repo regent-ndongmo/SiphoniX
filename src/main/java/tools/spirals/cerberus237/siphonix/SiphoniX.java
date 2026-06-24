@@ -8,12 +8,18 @@ import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class SiphoniX {
 
-    private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://recommender:8080/tools.descartes.teastore.recommender/rest");
+    protected static final Logger logger = LoggerFactory.getLogger(SiphoniX.class);
+
+    private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest");
     private static final int POLL_INTERVAL_SECONDS = 5;
     
     // Reusable, lightweight HTTP Client
@@ -22,8 +28,8 @@ public class SiphoniX {
             .build();
 
     public static void main(String[] args) {
-        System.out.println("[AUTONAMIC MANAGER] Starting Autonomic Manager Sidecar...");
-        System.out.println("[AUTONAMIC MANAGER] Monitoring Target: " + TARGET_SERVICE_URL);
+        logger.info("[SiphoniX] Starting Autonomic Manager Sidecar...");
+        logger.info("[SiphoniX] Monitoring Target: {}", TARGET_SERVICE_URL);
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         
@@ -47,7 +53,7 @@ public class SiphoniX {
                 execute(plan);
             }
         } catch (Exception e) {
-            System.err.println("[ERROR] MAPE loop encountered an issue: " + e.getMessage());
+            logger.error("[SiphoniX] [ERROR] MAPE loop encountered an issue: {}", e.getMessage(), e);
         }
     }
 
@@ -60,10 +66,10 @@ public class SiphoniX {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         
         if (response.statusCode() == 200) {
-            System.out.println("[MONITOR] Successfully fetched metrics: " + response.body());
+            logger.info("[SiphoniX] Successfully fetched metrics: {}", response.body());
             return response.body();
         } else {
-            System.err.println("[MONITOR] Failed to fetch metrics. HTTP Status: " + response.statusCode());
+            logger.error("[SiphoniX] [MONITOR] Failed to fetch metrics. HTTP Status: {}", response.statusCode());
             return null;
         }
     }
@@ -74,12 +80,12 @@ public class SiphoniX {
     }
 
     private static String planAdaptation() {
-        System.out.println("[PLAN] Determining adaptation strategy.");
+        logger.info("[SiphoniX] [PLAN] Planning adaptation strategy based on metrics.");
         return "ADAPTATION_ACTION_EXAMPLE"; // Example payload or command
     }
 
     private static void execute(String plan) {
-        System.out.println("[EXECUTE] Executing adaptation: " + plan);
+        logger.info("[SiphoniX] [EXECUTE] Executing adaptation: {}", plan);
         
         // Example 1: Execute via REST (Uncomment to use)
         /*
@@ -90,9 +96,9 @@ public class SiphoniX {
                     .header("Content-Type", "application/json")
                     .build();
             httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("[EXECUTE] REST Adaptation action sent.");
+            logger.info("[SiphoniX] [EXECUTE] REST Adaptation action sent.");
         } catch (Exception e) {
-            System.err.println("[EXECUTE] REST adaptation failed.");
+            logger.error("[SiphoniX] [EXECUTE] REST adaptation failed.");
         }
         */
 
@@ -102,10 +108,10 @@ public class SiphoniX {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println("[CLI OUTPUT] " + line);
+                logger.info("[SiphoniX] [CLI OUTPUT] {}", line);
             }
         } catch (Exception e) {
-            System.err.println("[EXECUTE] CLI adaptation failed.");
+            logger.error("[SiphoniX] [EXECUTE] CLI adaptation failed.");
         }
     }
 }
