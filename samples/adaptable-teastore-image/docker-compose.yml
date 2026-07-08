@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.manager
+      args:
+        SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
     container_name: adaptable-teastore-image
     environment:
       PORT: 8080
