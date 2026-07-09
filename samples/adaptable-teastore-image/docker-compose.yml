@@ -1,22 +1,32 @@
 version: '3'
 
 services:
+
+  registry:
+    image: cerberus237/adaptable-teastore-registry
+    restart: unless-stopped
+    expose:
+      - ${REGISTRY_DEBUG_PORT:-8000}
+    ports:
+      - ${REGISTRY_DEBUG_PORT:-8000}:${REGISTRY_DEBUG_PORT:-8000}
+    environment:
+      HOST_NAME: "registry"
+      CATALINA_OPTS: ${CATALINA_OPTS:--agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:}${REGISTRY_DEBUG_PORT:-8000}
+
   # The Autonomic Manager (Sidecar)
-  adaptable-teastore-image:
+  image:
     build:
       context: .
       dockerfile: Dockerfile.manager
       args:
         SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
-    container_name: adaptable-teastore-image
     environment:
       PORT: 8080
-      HOST_NAME: "adaptable-teastore-image"
+      HOST_NAME: "image"
       REGISTRY_HOST: "registry"
       CATALINA_OPTS: ${CATALINA_OPTS:--agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:}${IMAGE_DEBUG_PORT:-8003}
-      TARGET_URL: "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest"
+      TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
     ports:
-      - "8080:8080"
       - "8003:8003"
     expose:
       - "8080"
@@ -24,8 +34,47 @@ services:
     restart: unless-stopped
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-    networks:
-      - image-network
+
+
+  db:
+    image: cerberus237/adaptable-teastore-db
+    restart: unless-stopped
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+
+  persistence:
+    image: cerberus237/adaptable-teastore-persistence
+    restart: unless-stopped
+    expose:
+      - ${PERSISTENCE_DEBUG_PORT:-8004}
+    environment:
+      HOST_NAME: "persistence"
+      REGISTRY_HOST: "registry"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      CATALINA_OPTS: ${CATALINA_OPTS:--agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:}${PERSISTENCE_DEBUG_PORT:-8004}
+    ports:
+      - ${PERSISTENCE_DEBUG_PORT:-8004}:${PERSISTENCE_DEBUG_PORT:-8004}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  webui:
+    image: cerberus237/adaptable-teastore-webui
+    restart: unless-stopped
+    expose:
+      - "8080"
+      - ${WEBUI_DEBUG_PORT:-8002}
+    environment:
+      HOST_NAME: "webui"
+      REGISTRY_HOST: "registry"
+      CATALINA_OPTS: ${CATALINA_OPTS:--agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:}${WEBUI_DEBUG_PORT:-8002}
+    ports:
+      - "8080:8080"
+      - ${WEBUI_DEBUG_PORT:-8002}:${WEBUI_DEBUG_PORT:-8002}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
 
 networks:
   image-network:

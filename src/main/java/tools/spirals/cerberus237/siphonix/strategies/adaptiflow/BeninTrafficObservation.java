@@ -17,7 +17,7 @@ import tools.spirals.cerberus237.metricscollectorbase.metrics.cpu.ResourceUsageC
 public class BeninTrafficObservation {
     public static final int EVENT_LISTENING_INTERVAL_MS = 5000;
     public static ContinuousObservationScheduler beninTrafficObservationScheduler = null;
-    private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest");
+    private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://image:8080/tools.descartes.teastore.image/rest");
 
 
     private static BeninTrafficObservation instance = null;

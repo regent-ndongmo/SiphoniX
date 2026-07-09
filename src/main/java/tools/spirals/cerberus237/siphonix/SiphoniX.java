@@ -3,8 +3,7 @@ package tools.spirals.cerberus237.siphonix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tools.spirals.cerberus237.siphonix.strategies.adaptiflow.BeninTrafficObservation;
-import tools.spirals.cerberus237.siphonix.strategies.adaptiflow.DatabaseAvailabilityObservation;
+import tools.spirals.cerberus237.siphonix.strategies.adaptiflow.CacheSizeAdaptationObservation;
 
 public class SiphoniX {
 
@@ -16,14 +15,9 @@ public class SiphoniX {
         logger.info("[SiphoniX] Starting Autonomic Manager Sidecar...");
         logger.info("[SiphoniX] Monitoring Target: {}", TARGET_SERVICE_URL);
 
-        if (BeninTrafficObservation.beninTrafficObservationScheduler == null)
-            BeninTrafficObservation.getInstance();
-        BeninTrafficObservation.beninTrafficObservationScheduler.start();
-        logger.info("[SiphoniX] Traffic Surge Observation Start");
-
-        if (DatabaseAvailabilityObservation.databaseAvailabilityObservationScheduler == null)
-            DatabaseAvailabilityObservation.getInstance();
-        DatabaseAvailabilityObservation.databaseAvailabilityObservationScheduler.start();
-        logger.info("[SiphoniX] Database Availability Observation Start");
+        if (CacheSizeAdaptationObservation.cacheSizeAdaptationObservationScheduler == null)
+            CacheSizeAdaptationObservation.getInstance();
+        CacheSizeAdaptationObservation.cacheSizeAdaptationObservationScheduler.start();
+        logger.info("[SiphoniX] Cache Size Adaptation Observation Start");
     }
 }
