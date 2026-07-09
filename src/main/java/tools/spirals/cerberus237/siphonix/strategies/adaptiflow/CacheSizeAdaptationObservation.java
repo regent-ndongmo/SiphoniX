@@ -27,6 +27,7 @@ import tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers.EventSubsc
 import tools.spirals.cerberus237.metricscollectorbase.IMetricsCollector;
 import tools.spirals.cerberus237.metricscollectorbase.core.RestMetricsCollector;
 import tools.spirals.cerberus237.metricscollectorbase.models.CacheEntryMetrics;
+import tools.spirals.cerberus237.metricscollectorbase.models.CacheMetrics;
 
 /**
  * The {@code CacheSizeAdaptationObservation} class manages the observation of cache size
@@ -68,6 +69,8 @@ public class CacheSizeAdaptationObservation {
     private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL",
             "http://image:8080/tools.descartes.teastore.image/rest");
     private static final String CACHE_ENTRIES_ENDPOINT = "/metrics/cache-entries";
+    private static final String CACHE_MODE_ENDPOINT = "/metrics/cache-mode";
+    private static final String CACHE_METRICS_ENDPOINT = "/metrics/cache-metrics";
 
     private static CacheSizeAdaptationObservation instance = null;
 
@@ -122,7 +125,15 @@ public class CacheSizeAdaptationObservation {
         IMetricsCollector<List<CacheEntryMetrics>> cacheEntriesCollector = new RestMetricsCollector<List<CacheEntryMetrics>>(TARGET_SERVICE_URL, CACHE_ENTRIES_ENDPOINT, "GET",
                 (Class<List<CacheEntryMetrics>>) (Class<?>) List.class);
 
+        IMetricsCollector<String> cacheModeCollector = new RestMetricsCollector<String>(TARGET_SERVICE_URL, CACHE_MODE_ENDPOINT, "GET",
+                String.class);
+
+        IMetricsCollector<CacheMetrics> cacheMetricsCollector = new RestMetricsCollector<CacheMetrics>(TARGET_SERVICE_URL, CACHE_METRICS_ENDPOINT, "GET",
+                CacheMetrics.class);
+
         LOG.info("Cache entries collector configured to fetch from: {}{}", TARGET_SERVICE_URL, CACHE_ENTRIES_ENDPOINT);
+        LOG.info("Cache mode collector configured to fetch from: {}{}", TARGET_SERVICE_URL, CACHE_MODE_ENDPOINT);
+        LOG.info("Cache metrics collector configured to fetch from: {}{}", TARGET_SERVICE_URL, CACHE_METRICS_ENDPOINT);
 
         // Create conditional events for cache entry thresholds
         // Event triggered when cache entries increase beyond threshold
@@ -131,12 +142,22 @@ public class CacheSizeAdaptationObservation {
                 new TrueEvaluator<List<CacheEntryMetrics>>()
         );
 
+        ConditionalEvent<String> cacheModeEvent = new ConditionalEvent<String>(
+                cacheModeCollector,
+                new TrueEvaluator<String>()
+        );
+
+        ConditionalEvent<CacheMetrics> cacheMetricsEvent = new ConditionalEvent<CacheMetrics>(
+                cacheMetricsCollector,
+                new TrueEvaluator<CacheMetrics>()
+        );
+
         // Subscribe event handlers to the events
         cacheIncreaseEvent.subscribeAll(cacheIncreaseEventSubscriberList);
 
         // Create and start the continuous observation scheduler
         cacheSizeAdaptationObservationScheduler = new ContinuousObservationScheduler(
-                List.of(cacheIncreaseEvent),
+                List.of(cacheIncreaseEvent, cacheModeEvent, cacheMetricsEvent),
                 EVENT_LISTENING_INTERVAL_MS
         );
 
