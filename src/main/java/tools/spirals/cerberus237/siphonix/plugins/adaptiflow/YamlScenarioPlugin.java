@@ -1,8 +1,10 @@
 package tools.spirals.cerberus237.siphonix.plugins.adaptiflow;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -385,6 +387,9 @@ public class YamlScenarioPlugin implements Plugin {
         if (targetType.isInstance(value)) {
             return value;
         }
+        if (isFunctionalInterface(targetType)) {
+            return toFunctionalInterface(targetType, value);
+        }
         if (targetType == String.class) {
             return String.valueOf(value);
         }
@@ -406,6 +411,115 @@ public class YamlScenarioPlugin implements Plugin {
         if (targetType == Supplier.class) {
             final Object fixedValue = value;
             return (Supplier<Object>) () -> fixedValue;
+        }
+        return value;
+    }
+
+    private boolean isFunctionalInterface(Class<?> type) {
+        return type.isInterface() && findSamMethod(type) != null;
+    }
+
+    private Object toFunctionalInterface(Class<?> functionalType, Object rawValue) throws ClassNotFoundException {
+        Method samMethod = findSamMethod(functionalType);
+        if (samMethod == null) {
+            throw new InvalidConfigurationException("Type '" + functionalType.getName() + "' is not a functional interface");
+        }
+
+        final Object lambdaResult;
+        if (samMethod.getReturnType() == void.class) {
+            lambdaResult = null;
+        } else {
+            lambdaResult = convertSimpleValue(rawValue, samMethod.getReturnType());
+        }
+
+        InvocationHandler handler = (proxy, method, args) -> {
+            if (isObjectMethod(method, "hashCode", 0)) {
+                return System.identityHashCode(proxy);
+            }
+            if (isObjectMethod(method, "equals", 1)) {
+                return proxy == args[0];
+            }
+            if (isObjectMethod(method, "toString", 0)) {
+                return functionalType.getSimpleName() + "(" + String.valueOf(rawValue) + ")";
+            }
+            if (isSameSignature(method, samMethod)) {
+                return lambdaResult;
+            }
+            throw new UnsupportedOperationException("Unsupported method on lambda proxy: " + method.getName());
+        };
+
+        return Proxy.newProxyInstance(
+                functionalType.getClassLoader(),
+                new Class<?>[] { functionalType },
+                handler);
+    }
+
+    private Method findSamMethod(Class<?> functionalType) {
+        Method candidate = null;
+        for (Method method : functionalType.getMethods()) {
+            if (method.isDefault() || Modifier.isStatic(method.getModifiers()) || method.getDeclaringClass() == Object.class) {
+                continue;
+            }
+            if (candidate != null && !isSameSignature(candidate, method)) {
+                return null;
+            }
+            candidate = method;
+        }
+        return candidate;
+    }
+
+    private boolean isSameSignature(Method left, Method right) {
+        if (!left.getName().equals(right.getName())) {
+            return false;
+        }
+        Class<?>[] leftParams = left.getParameterTypes();
+        Class<?>[] rightParams = right.getParameterTypes();
+        if (leftParams.length != rightParams.length) {
+            return false;
+        }
+        for (int i = 0; i < leftParams.length; i++) {
+            if (!leftParams[i].equals(rightParams[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isObjectMethod(Method method, String name, int parameterCount) {
+        return method.getDeclaringClass() == Object.class
+                && method.getName().equals(name)
+                && method.getParameterCount() == parameterCount;
+    }
+
+    private Object convertSimpleValue(Object value, Class<?> targetType) throws ClassNotFoundException {
+        if (value == null) {
+            return null;
+        }
+        if (targetType.isInstance(value)) {
+            return value;
+        }
+        if (targetType == String.class) {
+            return String.valueOf(value);
+        }
+        if (targetType == int.class || targetType == Integer.class) {
+            return Integer.parseInt(String.valueOf(value));
+        }
+        if (targetType == long.class || targetType == Long.class) {
+            return Long.parseLong(String.valueOf(value));
+        }
+        if (targetType == double.class || targetType == Double.class) {
+            return Double.parseDouble(String.valueOf(value));
+        }
+        if (targetType == boolean.class || targetType == Boolean.class) {
+            return Boolean.parseBoolean(String.valueOf(value));
+        }
+        if (targetType == Class.class) {
+            return Class.forName(String.valueOf(value));
+        }
+        if (targetType.isEnum()) {
+            @SuppressWarnings({ "rawtypes", "unchecked" })
+            Enum enumValue = Enum.valueOf((Class<? extends Enum>) targetType, String.valueOf(value));
+            return enumValue;
         }
         return value;
     }
