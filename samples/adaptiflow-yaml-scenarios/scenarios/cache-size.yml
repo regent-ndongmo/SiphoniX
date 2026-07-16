@@ -1,0 +1,118 @@
+scenarios:
+  cache-size:
+    pluginId: adaptiflow.cache-size
+    enabled: true
+    intervalMs: 5000
+    events:
+      - id: cache-entries
+        type: ConditionalEvent
+        collector:
+          type: RestMetricsCollector
+          parameters:
+            constructorArgTypes:
+              - java.lang.String
+              - java.lang.String
+              - java.lang.String
+              - java.lang.Class
+            constructorArgs:
+              - http://image:8080/tools.descartes.teastore.image/rest
+              - /metrics/cache-entries
+              - GET
+              - java.util.List
+        evaluators:
+          - type: TrueEvaluator
+        actions:
+          - type: RestAdaptationAction
+            parameters:
+              constructorArgTypes:
+                - java.util.List
+                - java.lang.String
+                - java.lang.String
+              constructorArgs:
+                - [CacheEntriesObservation]
+                - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                - CacheEntriesObservation
+      - id: cache-mode
+        type: ConditionalEvent
+        collector:
+          type: RestMetricsCollector
+          parameters:
+            constructorArgTypes:
+              - java.lang.String
+              - java.lang.String
+              - java.lang.String
+              - java.lang.Class
+            constructorArgs:
+              - http://image:8080/tools.descartes.teastore.image/rest
+              - /metrics/cache-mode
+              - GET
+              - java.lang.String
+        evaluators:
+          - type: TrueEvaluator
+        actions:
+          - type: RestAdaptationAction
+            parameters:
+              constructorArgTypes:
+                - java.util.List
+                - java.lang.String
+                - java.lang.String
+              constructorArgs:
+                - [CacheModeObservation]
+                - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                - CacheModeObservation
+      - id: cache-metrics
+        type: ConditionalEvent
+        collector:
+          type: RestMetricsCollector
+          parameters:
+            constructorArgTypes:
+              - java.lang.String
+              - java.lang.String
+              - java.lang.String
+              - java.lang.Class
+            constructorArgs:
+              - http://image:8080/tools.descartes.teastore.image/rest
+              - /metrics/cache-metrics
+              - GET
+              - tools.spirals.cerberus237.metricscollectorbase.models.CacheMetrics
+        evaluators:
+          - type: TrueEvaluator
+        actions:
+          - type: RestAdaptationAction
+            parameters:
+              constructorArgTypes:
+                - java.util.List
+                - java.lang.String
+                - java.lang.String
+              constructorArgs:
+                - [CacheMetricsObservation]
+                - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                - CacheMetricsObservation
+      - id: cache-performance
+        type: ConditionalEvent
+        collector:
+          type: RestMetricsCollector
+          parameters:
+            constructorArgTypes:
+              - java.lang.String
+              - java.lang.String
+              - java.lang.String
+              - java.lang.Class
+            constructorArgs:
+              - http://image:8080/tools.descartes.teastore.image/rest
+              - /metrics/cache-performance
+              - GET
+              - tools.spirals.cerberus237.metricscollectorbase.models.CacheHitMissMetrics
+        evaluators:
+          - type: TrueEvaluator
+        actions:
+          - type: RestAdaptationAction
+            parameters:
+              constructorArgTypes:
+                - java.util.List
+                - java.lang.String
+                - java.lang.String
+              constructorArgs:
+                - [CachePerformanceObservation]
+                - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                - CachePerformanceObservation
