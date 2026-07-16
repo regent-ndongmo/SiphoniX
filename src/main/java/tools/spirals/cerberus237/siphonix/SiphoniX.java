@@ -10,8 +10,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tools.spirals.cerberus237.siphonix.config.SiphonixConfiguration;
-import tools.spirals.cerberus237.siphonix.config.YamlConfigurationManager;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.AdaptiflowConfiguration;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
@@ -19,7 +19,7 @@ import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.BeninTrafficObserva
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.CacheSizeObservationPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.DatabaseAvailabilityObservationPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.YamlScenarioPlugin;
-import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 public class SiphoniX {
 
@@ -67,7 +67,7 @@ public class SiphoniX {
     private static boolean registerYamlScenarioPlugins(PluginRegistry pluginRegistry, Path configPath) {
         YamlConfigurationManager manager = new YamlConfigurationManager();
         try {
-            SiphonixConfiguration configuration = manager.load(configPath);
+            AdaptiflowConfiguration configuration = manager.load(configPath);
             int registeredCount = 0;
 
             for (Map.Entry<String, ScenarioDefinition> scenarioEntry : configuration.getScenarios().entrySet()) {

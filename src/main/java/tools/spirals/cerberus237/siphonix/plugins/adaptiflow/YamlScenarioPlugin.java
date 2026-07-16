@@ -10,23 +10,22 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import tools.spirals.cerberus237.adaptationactionsbase.core.IAdaptationAction;
-import tools.spirals.cerberus237.adaptiflow.events.ConditionalEvent;
 import tools.spirals.cerberus237.adaptiflow.events.Event;
 import tools.spirals.cerberus237.adaptiflow.interfaces.ConditionEvaluator;
 import tools.spirals.cerberus237.adaptiflow.interfaces.Observer;
 import tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers.EventSubscriber;
 import tools.spirals.cerberus237.metricscollectorbase.IMetricsCollector;
-import tools.spirals.cerberus237.siphonix.config.InvalidConfigurationException;
 import tools.spirals.cerberus237.siphonix.kernel.ManagedSchedulerHandle;
 import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginState;
-import tools.spirals.cerberus237.siphonix.scenarios.ActionDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ConditionalEvaluatorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.EventDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.MetricCollectorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ObservationSchedulerDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.InvalidConfigurationException;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ActionDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ConditionalEvaluatorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.EventDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.MetricCollectorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ObservationSchedulerDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 /**
  * Runtime plugin that materializes Adaptiflow events from YAML scenarios.
