@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.plugins.adaptiflow;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

@@ -15,10 +15,10 @@ import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.YamlCon
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
-import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.BeninTrafficObservationPlugin;
-import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.CacheSizeObservationPlugin;
-import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.DatabaseAvailabilityObservationPlugin;
-import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.YamlScenarioPlugin;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy.BeninTrafficObservationPlugin;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy.CacheSizeObservationPlugin;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy.DatabaseAvailabilityObservationPlugin;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.runtime.YamlScenarioPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 public class SiphoniX {

@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.plugins.adaptiflow;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.runtime;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;

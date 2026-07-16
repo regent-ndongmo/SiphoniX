@@ -1,6 +1,6 @@
-package tools.spirals.cerberus237.siphonix.plugins.adaptiflow;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy;
 
-import tools.spirals.cerberus237.siphonix.strategies.adaptiflow.DatabaseAvailabilityObservation;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy.observations.DatabaseAvailabilityObservation;
 
 public class DatabaseAvailabilityObservationPlugin extends AbstractObservationPlugin {
 

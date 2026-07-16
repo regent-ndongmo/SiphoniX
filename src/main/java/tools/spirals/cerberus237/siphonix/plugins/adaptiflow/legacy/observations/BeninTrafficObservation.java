@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.strategies.adaptiflow;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy.observations;
 
 import java.util.HashMap;
 import java.util.List;
