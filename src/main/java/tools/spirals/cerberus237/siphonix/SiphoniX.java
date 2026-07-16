@@ -18,6 +18,7 @@ import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.BeninTrafficObservationPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.CacheSizeObservationPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.DatabaseAvailabilityObservationPlugin;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.YamlScenarioPlugin;
 import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
 
 public class SiphoniX {
@@ -33,7 +34,7 @@ public class SiphoniX {
         logger.info("[SiphoniX] Monitoring Target: {}", TARGET_SERVICE_URL);
 
         PluginRegistry pluginRegistry = new PluginRegistry();
-        registerEnabledPlugins(pluginRegistry, getEnabledPluginIds());
+        registerPlugins(pluginRegistry);
         pluginRegistry.initializeAll(new DefaultPluginContext());
         pluginRegistry.startAll();
 
@@ -45,23 +46,45 @@ public class SiphoniX {
         logger.info("[SiphoniX] Started {} plugin(s)", pluginRegistry.list().size());
     }
 
-    private static Set<String> getEnabledPluginIds() {
+    private static void registerPlugins(PluginRegistry pluginRegistry) {
         String rawEnabledPlugins = System.getenv("SIPHONIX_ENABLED_PLUGINS");
         if (rawEnabledPlugins != null && !rawEnabledPlugins.trim().isEmpty()) {
-            return parsePluginIds(rawEnabledPlugins);
+            registerEnabledPlugins(pluginRegistry, parsePluginIds(rawEnabledPlugins));
+            return;
         }
 
         String configPath = System.getenv(CONFIG_PATH_ENV);
         if (configPath != null && !configPath.trim().isEmpty()) {
-            Set<String> pluginIds = loadEnabledPluginIdsFromConfig(Path.of(configPath.trim()));
-            if (!pluginIds.isEmpty()) {
-                return pluginIds;
+            if (!registerYamlScenarioPlugins(pluginRegistry, Path.of(configPath.trim()))) {
+                logger.warn("[SiphoniX] No enabled scenario plugin registered from {}", configPath);
             }
-            logger.warn("[SiphoniX] No enabled scenario plugin found in config {}, fallback to defaults", configPath);
+            return;
         }
 
-        rawEnabledPlugins = DEFAULT_ENABLED_PLUGINS;
-        return parsePluginIds(rawEnabledPlugins);
+        registerEnabledPlugins(pluginRegistry, parsePluginIds(DEFAULT_ENABLED_PLUGINS));
+    }
+
+    private static boolean registerYamlScenarioPlugins(PluginRegistry pluginRegistry, Path configPath) {
+        YamlConfigurationManager manager = new YamlConfigurationManager();
+        try {
+            SiphonixConfiguration configuration = manager.load(configPath);
+            int registeredCount = 0;
+
+            for (Map.Entry<String, ScenarioDefinition> scenarioEntry : configuration.getScenarios().entrySet()) {
+                ScenarioDefinition scenario = scenarioEntry.getValue();
+                if (!scenario.isEnabled()) {
+                    continue;
+                }
+                pluginRegistry.register(new YamlScenarioPlugin(scenario));
+                registeredCount++;
+                logger.info("[SiphoniX] Registered YAML scenario plugin for scenario {}", scenario.getId());
+            }
+
+            return registeredCount > 0;
+        } catch (IOException | RuntimeException ex) {
+            logger.error("[SiphoniX] Failed to register YAML scenario plugins from {}", configPath, ex);
+            return false;
+        }
     }
 
     private static Set<String> parsePluginIds(String rawEnabledPlugins) {
@@ -70,23 +93,6 @@ public class SiphoniX {
                 .map(String::trim)
                 .filter(value -> !value.isEmpty())
                 .forEach(pluginIds::add);
-        return pluginIds;
-    }
-
-    private static Set<String> loadEnabledPluginIdsFromConfig(Path configPath) {
-        Set<String> pluginIds = new LinkedHashSet<>();
-        YamlConfigurationManager manager = new YamlConfigurationManager();
-        try {
-            SiphonixConfiguration configuration = manager.load(configPath);
-            for (Map.Entry<String, ScenarioDefinition> scenarioEntry : configuration.getScenarios().entrySet()) {
-                ScenarioDefinition scenario = scenarioEntry.getValue();
-                if (scenario.isEnabled()) {
-                    pluginIds.add(scenario.getPluginId());
-                }
-            }
-        } catch (IOException | RuntimeException ex) {
-            logger.error("[SiphoniX] Failed to load configuration file {}", configPath, ex);
-        }
         return pluginIds;
     }
 
