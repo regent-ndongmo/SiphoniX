@@ -1,0 +1,54 @@
+scenarios:
+  benin-traffic:
+    pluginId: adaptiflow.benin-traffic
+    enabled: true
+    intervalMs: 5000
+    events:
+      - id: traffic-increase
+        type: ConditionalEvent
+        collector:
+          type: ResourceUsageCollector
+        evaluators:
+          - type: IncreaseResourceUsageEvaluator
+            parameters:
+              constructorArgTypes:
+                - tools.spirals.cerberus237.adaptiflow.interfaces.ThresholdProvider
+                - tools.spirals.cerberus237.adaptiflow.interfaces.ThresholdProvider
+              constructorArgs:
+                - 75.0
+                - 80.0
+        actions:
+          - type: RestAdaptationAction
+            parameters:
+              constructorArgTypes:
+                - java.util.List
+                - java.lang.String
+                - java.lang.String
+              constructorArgs:
+                - [EnableExternalImageProvider]
+                - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                - EnableExternalImageProvider
+      - id: traffic-decrease
+        type: ConditionalEvent
+        collector:
+          type: ResourceUsageCollector
+        evaluators:
+          - type: DecreaseResourceUsageEvaluator
+            parameters:
+              constructorArgTypes:
+                - tools.spirals.cerberus237.adaptiflow.interfaces.ThresholdProvider
+                - tools.spirals.cerberus237.adaptiflow.interfaces.ThresholdProvider
+              constructorArgs:
+                - 60.0
+                - 60.0
+        actions:
+          - type: RestAdaptationAction
+            parameters:
+              constructorArgTypes:
+                - java.util.List
+                - java.lang.String
+                - java.lang.String
+              constructorArgs:
+                - [DisableExternalImageProvider]
+                - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                - DisableExternalImageProvider
