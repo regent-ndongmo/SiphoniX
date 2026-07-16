@@ -16,6 +16,7 @@ import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.Adaptif
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ConditionalEvaluatorDefinition;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.runtime.YamlScenarioPlugin;
 
 public class SampleYamlScenarioIntegrationTest {
 

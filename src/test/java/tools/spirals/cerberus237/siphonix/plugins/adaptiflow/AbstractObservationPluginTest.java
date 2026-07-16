@@ -6,6 +6,7 @@ import org.junit.Test;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginState;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.legacy.AbstractObservationPlugin;
 
 public class AbstractObservationPluginTest {
 

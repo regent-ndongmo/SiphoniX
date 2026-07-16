@@ -14,6 +14,7 @@ import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.Cond
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.EventDefinition;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.runtime.YamlScenarioPlugin;
 
 public class YamlScenarioPluginTest {
 
