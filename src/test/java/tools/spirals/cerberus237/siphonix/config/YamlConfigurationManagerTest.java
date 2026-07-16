@@ -11,6 +11,10 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tools.spirals.cerberus237.siphonix.scenarios.ActionDefinition;
+import tools.spirals.cerberus237.siphonix.scenarios.ConditionalEvaluatorDefinition;
+import tools.spirals.cerberus237.siphonix.scenarios.EventDefinition;
+import tools.spirals.cerberus237.siphonix.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
 
 public class YamlConfigurationManagerTest {
@@ -36,10 +40,35 @@ public class YamlConfigurationManagerTest {
                         + "    pluginId: adaptiflow.cache-size\n"
                         + "    enabled: true\n"
                         + "    intervalMs: 6000\n"
-                        + "    thresholds:\n"
-                        + "      high: 80\n"
-                        + "    actions:\n"
-                        + "      - EnableExternalImageProvider\n");
+                + "    events:\n"
+                + "      - id: cpu-spike\n"
+                + "        type: ConditionalEvent\n"
+                + "        collector:\n"
+                        + "          type: RestMetricsCollector\n"
+                + "          parameters:\n"
+                + "            endpoint: /metrics/cpu\n"
+                        + "            method: GET\n"
+                        + "            responseType: java.util.HashMap\n"
+                + "        evaluators:\n"
+                        + "          - type: IncreaseResourceUsageEvaluator\n"
+                + "            parameters:\n"
+                        + "              constructorArgTypes:\n"
+                        + "                - java.util.function.Supplier\n"
+                        + "                - java.util.function.Supplier\n"
+                        + "              constructorArgs:\n"
+                        + "                - 75\n"
+                        + "                - 80\n"
+                + "        actions:\n"
+                        + "          - type: RestAdaptationAction\n"
+                + "            parameters:\n"
+                        + "              constructorArgTypes:\n"
+                        + "                - java.util.List\n"
+                        + "                - java.lang.String\n"
+                        + "                - java.lang.String\n"
+                        + "              constructorArgs:\n"
+                        + "                - [EnableExternalImageProvider]\n"
+                        + "                - http://localhost/adapt\n"
+                        + "                - EnableExternalImageProvider\n");
 
         YamlConfigurationManager manager = new YamlConfigurationManager();
         SiphonixConfiguration configuration = manager.load(tempFile);
@@ -48,8 +77,17 @@ public class YamlConfigurationManagerTest {
         Assert.assertNotNull(definition);
         Assert.assertEquals("adaptiflow.cache-size", definition.getPluginId());
         Assert.assertEquals(6000, definition.getIntervalMs());
-        Assert.assertEquals(80, ((Number) definition.getThresholds().get("high")).intValue());
-        Assert.assertEquals(1, definition.getActions().size());
+        Assert.assertEquals(1, definition.getEvents().size());
+        EventDefinition event = definition.getEvents().get(0);
+        Assert.assertEquals("cpu-spike", event.getId());
+        Assert.assertEquals("ConditionalEvent", event.getType());
+        Assert.assertEquals("RestMetricsCollector", event.getCollector().getType());
+        Assert.assertEquals("/metrics/cpu", event.getCollector().getParameters().get("endpoint"));
+        Assert.assertEquals(1, event.getEvaluators().size());
+        Assert.assertEquals("IncreaseResourceUsageEvaluator", event.getEvaluators().get(0).getType());
+        Assert.assertEquals(80, ((Number) ((List<?>) event.getEvaluators().get(0).getParameters().get("constructorArgs")).get(1)).intValue());
+        Assert.assertEquals(1, event.getActions().size());
+        Assert.assertEquals("RestAdaptationAction", event.getActions().get(0).getType());
     }
 
     @Test
@@ -62,10 +100,34 @@ public class YamlConfigurationManagerTest {
         scenario.setPluginId("adaptiflow.database-availability");
         scenario.setEnabled(false);
         scenario.setIntervalMs(3000);
-        Map<String, Object> thresholds = new LinkedHashMap<>();
-        thresholds.put("cpuMax", 75);
-        scenario.setThresholds(thresholds);
-        scenario.setActions(List.of("DatabaseUnavailableEventBroadcast"));
+
+        EventDefinition event = new EventDefinition();
+        event.setId("db-unavailable");
+        event.setType("ConditionalEvent");
+
+        MetricCollectorDefinition collector = new MetricCollectorDefinition();
+        collector.setType("RestMetricsCollector");
+        collector.setParameters(Map.of("endpoint", "/metrics/database"));
+        event.setCollector(collector);
+
+        ConditionalEvaluatorDefinition evaluator = new ConditionalEvaluatorDefinition();
+        evaluator.setType("DecreaseResourceUsageEvaluator");
+        evaluator.setParameters(new LinkedHashMap<>(Map.of(
+            "constructorArgTypes", List.of("java.util.function.Supplier", "java.util.function.Supplier"),
+            "constructorArgs", List.of(60, 55))));
+        event.setEvaluators(List.of(evaluator));
+
+        ActionDefinition action = new ActionDefinition();
+        action.setType("RestAdaptationAction");
+        action.setParameters(new LinkedHashMap<>(Map.of(
+            "constructorArgTypes", List.of("java.util.List", "java.lang.String", "java.lang.String"),
+            "constructorArgs", List.of(
+                List.of("DatabaseUnavailableEventBroadcast"),
+                "http://localhost/adapt",
+                "DatabaseUnavailableEventBroadcast"))));
+        event.setActions(List.of(action));
+
+        scenario.setEvents(List.of(event));
 
         SiphonixConfiguration configuration = new SiphonixConfiguration();
         configuration.getScenarios().put("db-availability", scenario);
@@ -80,7 +142,13 @@ public class YamlConfigurationManagerTest {
         Assert.assertEquals("adaptiflow.database-availability", reloadedScenario.getPluginId());
         Assert.assertFalse(reloadedScenario.isEnabled());
         Assert.assertEquals(3000, reloadedScenario.getIntervalMs());
-        Assert.assertEquals("DatabaseUnavailableEventBroadcast", reloadedScenario.getActions().get(0));
+        Assert.assertEquals(1, reloadedScenario.getEvents().size());
+        EventDefinition reloadedEvent = reloadedScenario.getEvents().get(0);
+        Assert.assertEquals("db-unavailable", reloadedEvent.getId());
+        Assert.assertEquals("ConditionalEvent", reloadedEvent.getType());
+        Assert.assertEquals("RestMetricsCollector", reloadedEvent.getCollector().getType());
+        Assert.assertEquals("DecreaseResourceUsageEvaluator", reloadedEvent.getEvaluators().get(0).getType());
+        Assert.assertEquals("RestAdaptationAction", reloadedEvent.getActions().get(0).getType());
     }
 
     @Test(expected = InvalidConfigurationException.class)
@@ -89,7 +157,27 @@ public class YamlConfigurationManagerTest {
         Files.writeString(tempFile,
                 "scenarios:\n"
                         + "  broken-scenario:\n"
+                        + "    pluginId: adaptiflow.cache-size\n"
                         + "    intervalMs: 1000\n");
+
+        YamlConfigurationManager manager = new YamlConfigurationManager();
+        manager.load(tempFile);
+    }
+
+    @Test(expected = InvalidConfigurationException.class)
+    public void shouldRejectEventWithoutEvaluators() throws IOException {
+        Path tempFile = createWritableTempFile("siphonix-invalid-evaluator");
+        Files.writeString(tempFile,
+                "scenarios:\n"
+                        + "  invalid-event:\n"
+                        + "    pluginId: adaptiflow.cache-size\n"
+                        + "    intervalMs: 1000\n"
+                        + "    events:\n"
+                        + "      - id: no-evaluator\n"
+                        + "        collector:\n"
+                        + "          type: RestMetricsCollector\n"
+                        + "        actions:\n"
+                        + "          - type: RestAdaptationAction\n");
 
         YamlConfigurationManager manager = new YamlConfigurationManager();
         manager.load(tempFile);
