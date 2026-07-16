@@ -20,12 +20,14 @@ services:
       dockerfile: Dockerfile.manager
       args:
         SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
+        ADAPTIFLOW_PLUGIN: ${ADAPTIFLOW_PLUGIN:-./adaptiflow-engine-plugin.jar}
     environment:
       PORT: 8080
       HOST_NAME: "image"
       REGISTRY_HOST: "registry"
       CATALINA_OPTS: ${CATALINA_OPTS:--agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:}${IMAGE_DEBUG_PORT:-8003}
       TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
+      SIPHONIX_PLUGIN_ARTIFACT: "/usr/local/tomcat/bin/adaptiflow-engine-plugin.jar"
     ports:
       - "8003:8003"
     expose:

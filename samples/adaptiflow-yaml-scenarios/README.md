@@ -13,6 +13,14 @@ Default scenario: `benin-traffic` defined in [scenarios/benin-traffic.yml](scena
 mvn clean package
 ```
 
+- Build the AdaptiFlow plugin artifact:
+
+```bash
+cd adaptiflow-engine-plugin
+mvn clean package
+cd ..
+```
+
 ## Run BeninTrafficObservation Scenario
 
 ```bash

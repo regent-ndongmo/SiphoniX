@@ -13,6 +13,7 @@ services:
       dockerfile: Dockerfile.manager
       args:
         SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
+        ADAPTIFLOW_PLUGIN: ${ADAPTIFLOW_PLUGIN:-./adaptiflow-engine-plugin.jar}
     restart: unless-stopped
     environment:
       PORT: 8080
@@ -20,6 +21,7 @@ services:
       REGISTRY_HOST: "registry"
       TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
       SIPHONIX_CONFIG: "/opt/siphonix/scenarios/${SCENARIO_FILE:-benin-traffic}.yml"
+      SIPHONIX_PLUGIN_ARTIFACT: "/usr/local/tomcat/bin/adaptiflow-engine-plugin.jar"
     ports:
       - "8080:8080"
     volumes:

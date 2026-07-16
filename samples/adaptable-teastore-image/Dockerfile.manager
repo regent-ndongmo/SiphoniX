@@ -2,9 +2,11 @@
 FROM cerberus237/adaptable-teastore-image:latest
 
 ARG SIPHONIX
+ARG ADAPTIFLOW_PLUGIN
 
 # Copy the local Java artifact into the container
 COPY ${SIPHONIX} /usr/local/tomcat/bin/siphonix.jar
+COPY ${ADAPTIFLOW_PLUGIN} /usr/local/tomcat/bin/adaptiflow-engine-plugin.jar
 
 # Run the compiled Java application (using JSON array format to prevent OS signal issues)
 CMD ["sh", "-c", "java -jar /usr/local/tomcat/bin/siphonix.jar & /usr/local/tomcat/bin/start.sh && /usr/local/tomcat/bin/catalina.sh run"]

@@ -16,5 +16,14 @@ else
     exit 1
 fi
 
+if ls ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar 1> /dev/null 2>&1; then
+    echo "Copie du plugin AdaptiFlow vers le répertoire courant..."
+    cp ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar ./adaptiflow-engine-plugin.jar
+else
+    echo "Erreur : Le plugin AdaptiFlow n'existe pas."
+    echo "Veuillez exécuter 'cd adaptiflow-engine-plugin && mvn clean package' en premier."
+    exit 1
+fi
+
 # 3. Lancement de docker-compose
 docker-compose -f docker-compose.yml -p adaptable-teastore-image up -d --build
