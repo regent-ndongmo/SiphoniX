@@ -6,14 +6,14 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tools.spirals.cerberus237.siphonix.config.InvalidConfigurationException;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginState;
-import tools.spirals.cerberus237.siphonix.scenarios.ActionDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ConditionalEvaluatorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.EventDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.MetricCollectorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.InvalidConfigurationException;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ActionDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ConditionalEvaluatorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.EventDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.MetricCollectorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 public class YamlScenarioPluginTest {
 
