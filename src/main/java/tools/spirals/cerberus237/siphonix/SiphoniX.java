@@ -1,24 +1,31 @@
 package tools.spirals.cerberus237.siphonix;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tools.spirals.cerberus237.siphonix.config.SiphonixConfiguration;
+import tools.spirals.cerberus237.siphonix.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.BeninTrafficObservationPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.CacheSizeObservationPlugin;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.DatabaseAvailabilityObservationPlugin;
+import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
 
 public class SiphoniX {
 
     protected static final Logger logger = LoggerFactory.getLogger(SiphoniX.class);
 
     private static final String DEFAULT_ENABLED_PLUGINS = "adaptiflow.cache-size";
+    private static final String CONFIG_PATH_ENV = "SIPHONIX_CONFIG";
     private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest");
     
     public static void main(String[] args) {
@@ -39,12 +46,47 @@ public class SiphoniX {
     }
 
     private static Set<String> getEnabledPluginIds() {
-        String rawEnabledPlugins = System.getenv().getOrDefault("SIPHONIX_ENABLED_PLUGINS", DEFAULT_ENABLED_PLUGINS);
+        String rawEnabledPlugins = System.getenv("SIPHONIX_ENABLED_PLUGINS");
+        if (rawEnabledPlugins != null && !rawEnabledPlugins.trim().isEmpty()) {
+            return parsePluginIds(rawEnabledPlugins);
+        }
+
+        String configPath = System.getenv(CONFIG_PATH_ENV);
+        if (configPath != null && !configPath.trim().isEmpty()) {
+            Set<String> pluginIds = loadEnabledPluginIdsFromConfig(Path.of(configPath.trim()));
+            if (!pluginIds.isEmpty()) {
+                return pluginIds;
+            }
+            logger.warn("[SiphoniX] No enabled scenario plugin found in config {}, fallback to defaults", configPath);
+        }
+
+        rawEnabledPlugins = DEFAULT_ENABLED_PLUGINS;
+        return parsePluginIds(rawEnabledPlugins);
+    }
+
+    private static Set<String> parsePluginIds(String rawEnabledPlugins) {
         Set<String> pluginIds = new LinkedHashSet<>();
         Arrays.stream(rawEnabledPlugins.split(","))
                 .map(String::trim)
                 .filter(value -> !value.isEmpty())
                 .forEach(pluginIds::add);
+        return pluginIds;
+    }
+
+    private static Set<String> loadEnabledPluginIdsFromConfig(Path configPath) {
+        Set<String> pluginIds = new LinkedHashSet<>();
+        YamlConfigurationManager manager = new YamlConfigurationManager();
+        try {
+            SiphonixConfiguration configuration = manager.load(configPath);
+            for (Map.Entry<String, ScenarioDefinition> scenarioEntry : configuration.getScenarios().entrySet()) {
+                ScenarioDefinition scenario = scenarioEntry.getValue();
+                if (scenario.isEnabled()) {
+                    pluginIds.add(scenario.getPluginId());
+                }
+            }
+        } catch (IOException | RuntimeException ex) {
+            logger.error("[SiphoniX] Failed to load configuration file {}", configPath, ex);
+        }
         return pluginIds;
     }
 
