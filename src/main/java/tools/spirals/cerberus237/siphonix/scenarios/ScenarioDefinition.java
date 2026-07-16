@@ -1,9 +1,7 @@
 package tools.spirals.cerberus237.siphonix.scenarios;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Declarative scenario definition loaded from configuration.
@@ -14,8 +12,8 @@ public class ScenarioDefinition {
     private String pluginId;
     private boolean enabled = true;
     private int intervalMs = 5000;
-    private Map<String, Object> thresholds = new LinkedHashMap<>();
-    private List<String> actions = new ArrayList<>();
+    private List<EventDefinition> events = new ArrayList<>();
+    private ObservationSchedulerDefinition scheduler;
 
     public String getId() {
         return id;
@@ -49,19 +47,19 @@ public class ScenarioDefinition {
         this.intervalMs = intervalMs;
     }
 
-    public Map<String, Object> getThresholds() {
-        return thresholds;
+    public List<EventDefinition> getEvents() {
+        return events;
     }
 
-    public void setThresholds(Map<String, Object> thresholds) {
-        this.thresholds = thresholds;
+    public void setEvents(List<EventDefinition> events) {
+        this.events = events;
     }
 
-    public List<String> getActions() {
-        return actions;
+    public ObservationSchedulerDefinition getScheduler() {
+        return scheduler;
     }
 
-    public void setActions(List<String> actions) {
-        this.actions = actions;
+    public void setScheduler(ObservationSchedulerDefinition scheduler) {
+        this.scheduler = scheduler;
     }
 }
