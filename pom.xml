@@ -38,23 +38,6 @@
 	</developers>
 
 	<dependencies>
-		<!-- Internal Dependencies -->
-		<dependency>
-			<groupId>io.github.brice10</groupId>
-			<artifactId>adaptiflow</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.brice10</groupId>
-			<artifactId>metricscollectorbase</artifactId>
-			<version>1.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.brice10</groupId>
-			<artifactId>adaptationactionsbase</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-
 		<!-- Logging Dependencies -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
