@@ -8,10 +8,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.AdaptiflowConfiguration;
-import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
-import tools.spirals.cerberus237.siphonix.kernel.PluginState;
 
 /**
  * Applies scenario definitions onto registered plugins.

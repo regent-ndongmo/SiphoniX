@@ -1,5 +1,7 @@
 package tools.spirals.cerberus237.siphonix.kernel;
 
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
+
 /**
  * Default plugin context implementation backed by environment variables.
  */

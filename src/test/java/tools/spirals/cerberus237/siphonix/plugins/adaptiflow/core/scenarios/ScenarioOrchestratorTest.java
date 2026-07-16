@@ -3,12 +3,12 @@ package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.AdaptiflowConfiguration;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
-import tools.spirals.cerberus237.siphonix.kernel.Plugin;
-import tools.spirals.cerberus237.siphonix.kernel.PluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
-import tools.spirals.cerberus237.siphonix.kernel.PluginState;
 
 public class ScenarioOrchestratorTest {
 

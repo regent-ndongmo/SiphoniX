@@ -10,8 +10,8 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
-import tools.spirals.cerberus237.siphonix.kernel.PluginState;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.AdaptiflowConfiguration;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ConditionalEvaluatorDefinition;

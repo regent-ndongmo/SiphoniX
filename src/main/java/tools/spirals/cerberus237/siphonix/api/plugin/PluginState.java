@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.kernel;
+package tools.spirals.cerberus237.siphonix.api.plugin;
 
 /**
  * Represents the runtime state of a plugin instance.

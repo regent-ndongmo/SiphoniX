@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.kernel;
+package tools.spirals.cerberus237.siphonix.api.plugin;
 
 /**
  * Shared runtime context passed to plugins during initialization.
