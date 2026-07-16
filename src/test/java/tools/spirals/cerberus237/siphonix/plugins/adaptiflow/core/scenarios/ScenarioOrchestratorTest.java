@@ -1,9 +1,9 @@
-package tools.spirals.cerberus237.siphonix.scenarios;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import tools.spirals.cerberus237.siphonix.config.SiphonixConfiguration;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.AdaptiflowConfiguration;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginContext;
@@ -24,7 +24,7 @@ public class ScenarioOrchestratorTest {
         dbPlugin.start();
         Assert.assertEquals(PluginState.RUNNING, dbPlugin.getState());
 
-        SiphonixConfiguration configuration = new SiphonixConfiguration();
+        AdaptiflowConfiguration configuration = new AdaptiflowConfiguration();
 
         ScenarioDefinition enabledScenario = new ScenarioDefinition();
         enabledScenario.setId("cache-observation");
@@ -55,7 +55,7 @@ public class ScenarioOrchestratorTest {
         registry.register(cachePlugin);
         registry.initializeAll(new DefaultPluginContext());
 
-        SiphonixConfiguration configuration = new SiphonixConfiguration();
+        AdaptiflowConfiguration configuration = new AdaptiflowConfiguration();
 
         ScenarioDefinition scenarioA = new ScenarioDefinition();
         scenarioA.setId("cache-observation-a");

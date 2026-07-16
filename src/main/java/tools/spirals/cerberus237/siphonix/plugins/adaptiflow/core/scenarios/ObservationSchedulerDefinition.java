@@ -1,13 +1,12 @@
-package tools.spirals.cerberus237.siphonix.scenarios;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Declarative conditional evaluator definition. Thresholds are modeled as a
- * specific evaluator type with dedicated parameters.
+ * Declarative scheduler definition for scenario execution.
  */
-public class ConditionalEvaluatorDefinition {
+public class ObservationSchedulerDefinition {
 
     private String type;
     private Map<String, Object> parameters = new LinkedHashMap<>();

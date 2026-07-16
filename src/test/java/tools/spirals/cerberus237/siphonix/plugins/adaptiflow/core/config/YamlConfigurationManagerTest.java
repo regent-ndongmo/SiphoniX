@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.config;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,11 +11,11 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tools.spirals.cerberus237.siphonix.scenarios.ActionDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ConditionalEvaluatorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.EventDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.MetricCollectorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ActionDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ConditionalEvaluatorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.EventDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.MetricCollectorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 public class YamlConfigurationManagerTest {
 
@@ -71,7 +71,7 @@ public class YamlConfigurationManagerTest {
                         + "                - EnableExternalImageProvider\n");
 
         YamlConfigurationManager manager = new YamlConfigurationManager();
-        SiphonixConfiguration configuration = manager.load(tempFile);
+        AdaptiflowConfiguration configuration = manager.load(tempFile);
 
         ScenarioDefinition definition = configuration.getScenarios().get("cache-observation");
         Assert.assertNotNull(definition);
@@ -129,13 +129,13 @@ public class YamlConfigurationManagerTest {
 
         scenario.setEvents(List.of(event));
 
-        SiphonixConfiguration configuration = new SiphonixConfiguration();
+        AdaptiflowConfiguration configuration = new AdaptiflowConfiguration();
         configuration.getScenarios().put("db-availability", scenario);
 
         YamlConfigurationManager manager = new YamlConfigurationManager();
         manager.save(configPath, configuration);
 
-        SiphonixConfiguration reloaded = manager.load(configPath);
+        AdaptiflowConfiguration reloaded = manager.load(configPath);
         ScenarioDefinition reloadedScenario = reloaded.getScenarios().get("db-availability");
 
         Assert.assertNotNull(reloadedScenario);

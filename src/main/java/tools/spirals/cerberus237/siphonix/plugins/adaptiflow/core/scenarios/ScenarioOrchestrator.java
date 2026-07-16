@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.scenarios;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,7 +8,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tools.spirals.cerberus237.siphonix.config.SiphonixConfiguration;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config.AdaptiflowConfiguration;
 import tools.spirals.cerberus237.siphonix.kernel.Plugin;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 import tools.spirals.cerberus237.siphonix.kernel.PluginState;
@@ -26,7 +26,7 @@ public class ScenarioOrchestrator {
         this.pluginRegistry = pluginRegistry;
     }
 
-    public void applyConfiguration(SiphonixConfiguration configuration) {
+    public void applyConfiguration(AdaptiflowConfiguration configuration) {
         Map<String, Plugin> pluginsById = new HashMap<>();
         for (Plugin plugin : pluginRegistry.list()) {
             pluginsById.put(plugin.getId(), plugin);

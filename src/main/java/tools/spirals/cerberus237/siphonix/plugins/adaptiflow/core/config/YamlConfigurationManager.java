@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.config;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,12 +13,12 @@ import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import tools.spirals.cerberus237.siphonix.scenarios.ActionDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ConditionalEvaluatorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.EventDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.MetricCollectorDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ObservationSchedulerDefinition;
-import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ActionDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ConditionalEvaluatorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.EventDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.MetricCollectorDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ObservationSchedulerDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 /**
  * YAML-backed configuration manager for scenarios.
@@ -28,9 +28,9 @@ public class YamlConfigurationManager implements ConfigurationManager {
     private static final String DEFAULT_EVENT_TYPE = "ConditionalEvent";
 
     @Override
-    public SiphonixConfiguration load(Path path) throws IOException {
+    public AdaptiflowConfiguration load(Path path) throws IOException {
         if (!Files.exists(path)) {
-            return new SiphonixConfiguration();
+            return new AdaptiflowConfiguration();
         }
 
         Yaml yaml = new Yaml();
@@ -42,7 +42,7 @@ public class YamlConfigurationManager implements ConfigurationManager {
     }
 
     @Override
-    public void save(Path path, SiphonixConfiguration configuration) throws IOException {
+    public void save(Path path, AdaptiflowConfiguration configuration) throws IOException {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
@@ -56,8 +56,8 @@ public class YamlConfigurationManager implements ConfigurationManager {
         }
     }
 
-    private SiphonixConfiguration fromMap(Map<String, Object> root) {
-        SiphonixConfiguration configuration = new SiphonixConfiguration();
+    private AdaptiflowConfiguration fromMap(Map<String, Object> root) {
+        AdaptiflowConfiguration configuration = new AdaptiflowConfiguration();
 
         @SuppressWarnings("unchecked")
         Map<String, Object> rawScenarios = (Map<String, Object>) root.getOrDefault("scenarios", new LinkedHashMap<>());
@@ -210,7 +210,7 @@ public class YamlConfigurationManager implements ConfigurationManager {
         return actions;
     }
 
-    private Map<String, Object> toMap(SiphonixConfiguration configuration) {
+    private Map<String, Object> toMap(AdaptiflowConfiguration configuration) {
         Map<String, Object> root = new LinkedHashMap<>();
         Map<String, Object> rawScenarios = new LinkedHashMap<>();
 

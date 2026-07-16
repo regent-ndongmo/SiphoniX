@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.siphonix.scenarios;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -1,14 +1,14 @@
-package tools.spirals.cerberus237.siphonix.config;
+package tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import tools.spirals.cerberus237.siphonix.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.siphonix.plugins.adaptiflow.core.scenarios.ScenarioDefinition;
 
 /**
  * Root configuration model for SiphoniX runtime configuration files.
  */
-public class SiphonixConfiguration {
+public class AdaptiflowConfiguration {
 
     private Map<String, ScenarioDefinition> scenarios = new LinkedHashMap<>();
 
