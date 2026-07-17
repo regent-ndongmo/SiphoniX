@@ -1,8 +1,6 @@
 FROM cerberus237/adaptable-teastore-image:latest
 
 ARG SIPHONIX
-ARG ADAPTIFLOW_PLUGIN
 COPY ${SIPHONIX} /usr/local/tomcat/bin/siphonix.jar
-COPY ${ADAPTIFLOW_PLUGIN} /usr/local/tomcat/bin/adaptiflow-engine-plugin.jar
 
 CMD ["sh", "-c", "java -jar /usr/local/tomcat/bin/siphonix.jar & /usr/local/tomcat/bin/start.sh && /usr/local/tomcat/bin/catalina.sh run"]

@@ -3,6 +3,8 @@ package tools.spirals.cerberus237.siphonix.kernel;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collection;
+
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
@@ -97,6 +99,23 @@ public class PluginRegistryTest {
         registry.replace("dynamic-plugin", replacement, new DefaultPluginContext());
     }
 
+    @Test
+    public void shouldListPluginsByType() {
+        PluginRegistry registry = new PluginRegistry();
+        RecordingPlugin pluginA = new RecordingPlugin("plugin-a");
+        SpecializedRecordingPlugin pluginB = new SpecializedRecordingPlugin("plugin-b");
+
+        registry.register(pluginA);
+        registry.register(pluginB);
+
+        Collection<RecordingPlugin> recordingPlugins = registry.listByType(RecordingPlugin.class);
+        Collection<SpecializedRecordingPlugin> specializedPlugins = registry.listByType(SpecializedRecordingPlugin.class);
+
+        Assert.assertEquals(2, recordingPlugins.size());
+        Assert.assertEquals(1, specializedPlugins.size());
+        Assert.assertEquals("plugin-b", specializedPlugins.iterator().next().getId());
+    }
+
     private static class RecordingPlugin implements Plugin {
         private final String id;
         private PluginState state = PluginState.CREATED;
@@ -139,6 +158,13 @@ public class PluginRegistryTest {
         public void stop() {
             stopCalls++;
             state = PluginState.STOPPED;
+        }
+    }
+
+    private static final class SpecializedRecordingPlugin extends RecordingPlugin {
+
+        SpecializedRecordingPlugin(String id) {
+            super(id);
         }
     }
 }

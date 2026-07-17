@@ -17,7 +17,8 @@ else
 fi
 
 if ls ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar >/dev/null 2>&1; then
-  cp ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar ./adaptiflow-engine-plugin.jar
+  mkdir -p ./plugins
+  cp ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar ./plugins/adaptiflow-engine-plugin.jar
 else
   echo "Missing AdaptiFlow plugin jar. Run 'cd adaptiflow-engine-plugin && mvn clean package' first."
   exit 1

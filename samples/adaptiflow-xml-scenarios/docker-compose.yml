@@ -13,7 +13,6 @@ services:
       dockerfile: Dockerfile.manager
       args:
         SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
-        ADAPTIFLOW_PLUGIN: ${ADAPTIFLOW_PLUGIN:-./adaptiflow-engine-plugin.jar}
     restart: unless-stopped
     environment:
       PORT: 8080
@@ -21,12 +20,14 @@ services:
       REGISTRY_HOST: "registry"
       TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
       SIPHONIX_CONFIG: "/opt/siphonix/scenarios/${SCENARIO_FILE:-benin-traffic}.xml"
-      SIPHONIX_PLUGIN_ARTIFACT: "/usr/local/tomcat/bin/adaptiflow-engine-plugin.jar"
+      SIPHONIX_PLUGIN_DIR: "/opt/siphonix/plugins"
+      SIPHONIX_PLUGIN_DISCOVERY_MODE: "${SIPHONIX_PLUGIN_DISCOVERY_MODE:-watch-auto}"
     ports:
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./scenarios:/opt/siphonix/scenarios:ro
+      - ./plugins:/opt/siphonix/plugins
 
   db:
     image: cerberus237/adaptable-teastore-db

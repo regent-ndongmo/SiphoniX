@@ -3,7 +3,9 @@ package tools.spirals.cerberus237.siphonix.kernel;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
@@ -76,6 +78,16 @@ public class PluginRegistry {
 
     public Collection<Plugin> list() {
         return Collections.unmodifiableCollection(plugins.values());
+    }
+
+    public <T extends Plugin> Collection<T> listByType(Class<T> pluginType) {
+        Set<T> typed = new LinkedHashSet<>();
+        for (Plugin plugin : plugins.values()) {
+            if (pluginType.isInstance(plugin)) {
+                typed.add(pluginType.cast(plugin));
+            }
+        }
+        return Collections.unmodifiableSet(typed);
     }
 
     public void initializeAll(PluginContext context) {
