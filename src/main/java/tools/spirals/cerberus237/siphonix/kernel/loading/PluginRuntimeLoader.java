@@ -24,6 +24,21 @@ import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManageme
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 
+/**
+ * Runtime plugin directory manager.
+ *
+ * <p>This component is responsible for:
+ * <ul>
+ * <li>Startup plugin discovery from a configured directory.</li>
+ * <li>Optional periodic watch behavior depending on discovery mode.</li>
+ * <li>Artifact-to-plugin mapping for safe unload and replacement.</li>
+ * <li>Scenario source bootstrap for {@link ScenarioManagementPlugin} instances.</li>
+ * </ul>
+ *
+ * <p>In manual watch mode, changed artifacts are tracked as pending until explicitly loaded.
+ *
+ * @author Arléon Zemtsop (Cerberus)
+ */
 public class PluginRuntimeLoader implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(PluginRuntimeLoader.class);
@@ -61,19 +76,31 @@ public class PluginRuntimeLoader implements AutoCloseable {
         this.watchEnabled = discoveryMode != PluginDiscoveryMode.STARTUP_ONLY;
     }
 
+    /**
+     * Performs startup plugin scan and activation according to configured mode.
+     */
     public synchronized void loadStartupPlugins() {
         scanAndApply(true);
     }
 
+    /**
+     * Marks runtime as started.
+     */
     public synchronized void onRuntimeStarted() {
         runtimeInitialized = true;
         runtimeStarted = true;
     }
 
+    /**
+     * Marks runtime as initialized.
+     */
     public synchronized void onRuntimeInitialized() {
         runtimeInitialized = true;
     }
 
+    /**
+     * Starts periodic watch loop for plugin directory.
+     */
     public synchronized void startWatcher() {
         if (discoveryMode == PluginDiscoveryMode.STARTUP_ONLY) {
             return;
@@ -104,6 +131,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
         logger.info("[SiphoniX] Plugin watcher started in {} mode for {}", discoveryMode.getValue(), pluginDirectory);
     }
 
+    /**
+     * Stops periodic watch loop if running.
+     */
     public synchronized void stopWatcher() {
         if (watcher == null) {
             return;
@@ -112,10 +142,18 @@ public class PluginRuntimeLoader implements AutoCloseable {
         watcher = null;
     }
 
+    /**
+     * @return whether runtime watch behavior is currently enabled.
+     */
     public synchronized boolean isWatchEnabled() {
         return watchEnabled;
     }
 
+    /**
+     * Enables or disables watch behavior.
+     *
+     * @param enabled desired watch state.
+     */
     public synchronized void setWatchEnabled(boolean enabled) {
         if (discoveryMode == PluginDiscoveryMode.STARTUP_ONLY && enabled) {
             throw new IllegalStateException("Watcher cannot be enabled in startup-only mode");
@@ -123,6 +161,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
         this.watchEnabled = enabled;
     }
 
+    /**
+     * @return human-readable list of loaded plugins.
+     */
     public synchronized List<String> listLoadedPlugins() {
         List<String> lines = new ArrayList<>();
         for (Map.Entry<String, ActivePlugin> entry : activePlugins.entrySet()) {
@@ -134,6 +175,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
         return lines;
     }
 
+    /**
+     * @return artifacts detected but not activated in manual mode.
+     */
     public synchronized List<String> listPendingArtifacts() {
         List<String> pending = new ArrayList<>();
         for (Path path : pendingArtifacts) {
@@ -142,10 +186,21 @@ public class PluginRuntimeLoader implements AutoCloseable {
         return pending;
     }
 
+    /**
+     * Loads and activates one plugin artifact immediately.
+     *
+     * @param artifactPath artifact path.
+     * @return loaded plugin instance.
+     */
     public synchronized Plugin loadPlugin(Path artifactPath) {
         return loadAndActivate(artifactPath);
     }
 
+    /**
+     * Unloads a plugin by id.
+     *
+     * @param pluginId plugin identifier.
+     */
     public synchronized void unloadPlugin(String pluginId) {
         ActivePlugin activePlugin = activePlugins.remove(pluginId);
         if (activePlugin == null) {
@@ -158,6 +213,11 @@ public class PluginRuntimeLoader implements AutoCloseable {
         closeQuietly(activePlugin.handle);
     }
 
+    /**
+     * Reloads a plugin from its known artifact path.
+     *
+     * @param pluginId plugin identifier.
+     */
     public synchronized void reloadPlugin(String pluginId) {
         ActivePlugin activePlugin = activePlugins.get(pluginId);
         if (activePlugin == null) {
@@ -166,6 +226,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
         loadAndActivate(activePlugin.artifactPath);
     }
 
+    /**
+     * Triggers one scan cycle immediately.
+     */
     public synchronized void scanNow() {
         scanAndApply(false);
     }
@@ -320,6 +383,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
         }
     }
 
+    /**
+     * Releases watcher and classloader resources.
+     */
     @Override
     public synchronized void close() {
         stopWatcher();
@@ -332,6 +398,11 @@ public class PluginRuntimeLoader implements AutoCloseable {
         observedArtifacts.clear();
     }
 
+    /**
+     * Internal loaded plugin metadata.
+     *
+     * @author Arléon Zemtsop (Cerberus)
+     */
     private static final class ActivePlugin {
         private final Plugin plugin;
         private final PluginArtifactLoader.LoadedPluginHandle<? extends Plugin> handle;

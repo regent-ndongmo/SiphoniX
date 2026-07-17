@@ -14,6 +14,22 @@ import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 import tools.spirals.cerberus237.siphonix.kernel.loading.PluginDiscoveryMode;
 import tools.spirals.cerberus237.siphonix.kernel.loading.PluginRuntimeLoader;
 
+/**
+ * SiphoniX bootstrap entrypoint.
+ *
+ * <p>This class supports two execution modes:
+ * <ul>
+ * <li>Daemon mode: starts SiphoniX as a long-running sidecar that loads plugins from a
+ * configured folder and optionally watches that folder for runtime changes.</li>
+ * <li>Command mode: executes plugin management commands (list/load/unload/start/stop/reload/watch)
+ * against a transient runtime context.</li>
+ * </ul>
+ *
+ * <p>Configuration precedence for plugin folder and discovery mode is:
+ * CLI arguments first, then environment variables, then defaults.
+ *
+ * @author Arléon Zemtsop (Cerberus)
+ */
 public class SiphoniX {
 
     protected static final Logger logger = LoggerFactory.getLogger(SiphoniX.class);
@@ -25,6 +41,11 @@ public class SiphoniX {
     private static final String DEFAULT_PLUGIN_DIRECTORY = "/opt/siphonix/plugins";
     private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest");
 
+    /**
+     * Main startup entrypoint.
+     *
+     * @param args runtime options and optional command tokens.
+     */
     public static void main(String[] args) {
         LaunchOptions options;
         try {
@@ -90,6 +111,11 @@ public class SiphoniX {
         }
     }
 
+    /**
+     * Runs one plugin management command and exits.
+     *
+     * @param options fully resolved launch options.
+     */
     private static void runPluginCommand(LaunchOptions options) {
         PluginRegistry pluginRegistry = new PluginRegistry();
         DefaultPluginContext context = new DefaultPluginContext();
@@ -114,6 +140,13 @@ public class SiphoniX {
         }
     }
 
+    /**
+     * Executes plugin command tokens.
+     *
+     * @param commandTokens parsed command tokens.
+     * @param pluginRegistry plugin registry used by command operations.
+     * @param runtimeLoader runtime loader used by command operations.
+     */
     private static void executePluginCommand(List<String> commandTokens, PluginRegistry pluginRegistry,
             PluginRuntimeLoader runtimeLoader) {
         if (commandTokens.size() < 2 || !"plugin".equals(commandTokens.get(0))) {
@@ -200,6 +233,9 @@ public class SiphoniX {
         throw new IllegalArgumentException("Unsupported plugin command: " + subcommand);
     }
 
+    /**
+     * Prints command and daemon usage instructions.
+     */
     private static void printUsage() {
         logger.info("[SiphoniX] Usage:");
         logger.info("[SiphoniX]   Daemon mode:");
@@ -215,12 +251,25 @@ public class SiphoniX {
         logger.info("[SiphoniX] Environment defaults: SIPHONIX_PLUGIN_DIR, SIPHONIX_PLUGIN_DISCOVERY_MODE, SIPHONIX_CONFIG, SIPHONIX_PLUGIN_ARTIFACT");
     }
 
+    /**
+     * Validates command arity.
+     *
+     * @param commandTokens current command tokens.
+     * @param requiredCount required number of tokens.
+     * @param usage usage string shown in error message.
+     */
     private static void requireArgs(List<String> commandTokens, int requiredCount, String usage) {
         if (commandTokens.size() < requiredCount) {
             throw new IllegalArgumentException("Invalid command. Usage: " + usage);
         }
     }
 
+    /**
+     * Loads a legacy single plugin artifact when the compatibility variable is set.
+     *
+     * @param runtimeLoader active runtime loader.
+     * @param artifactPath artifact path from compatibility environment variable.
+     */
     private static void loadLegacyPluginArtifactIfConfigured(PluginRuntimeLoader runtimeLoader, String artifactPath) {
         if (artifactPath == null || artifactPath.trim().isEmpty()) {
             return;
@@ -230,6 +279,11 @@ public class SiphoniX {
         runtimeLoader.loadPlugin(path);
     }
 
+    /**
+     * Immutable launch options resolved from CLI arguments and environment variables.
+     *
+     * @author Arléon Zemtsop (Cerberus)
+     */
     private static final class LaunchOptions {
         private final Path pluginDirectory;
         private final PluginDiscoveryMode discoveryMode;

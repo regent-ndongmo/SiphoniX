@@ -10,12 +10,35 @@ import java.util.ServiceLoader;
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManagementPlugin;
 
+/**
+ * Artifact loader based on Java {@link ServiceLoader}.
+ *
+ * <p>This loader opens a dedicated {@link URLClassLoader} per artifact and tries to resolve
+ * plugin implementations for one or more plugin contracts. The associated classloader lifecycle
+ * is exposed via {@link LoadedPluginHandle} to allow clean unload/reload behavior.
+ *
+ * @author Arléon Zemtsop (Cerberus)
+ */
 public class PluginArtifactLoader {
 
+    /**
+     * Compatibility helper for scenario management plugins.
+     *
+     * @param artifactPath plugin artifact path.
+     * @return loaded handle for a {@link ScenarioManagementPlugin}.
+     */
     public LoadedPluginHandle loadScenarioManagementPlugin(Path artifactPath) {
         return loadPlugin(artifactPath, ScenarioManagementPlugin.class);
     }
 
+    /**
+     * Loads the first plugin implementation matching a given plugin type.
+     *
+     * @param artifactPath plugin artifact path.
+     * @param pluginType plugin contract to resolve.
+     * @param <T> plugin type.
+     * @return loaded plugin handle.
+     */
     public <T extends Plugin> LoadedPluginHandle<T> loadPlugin(Path artifactPath, Class<T> pluginType) {
         try {
             URLClassLoader classLoader = new URLClassLoader(
@@ -36,6 +59,13 @@ public class PluginArtifactLoader {
         }
     }
 
+    /**
+     * Tries supported plugin contracts in order and returns the first loadable plugin.
+     *
+     * @param artifactPath plugin artifact path.
+     * @param pluginTypes candidate plugin contracts ordered by priority.
+     * @return loaded plugin handle.
+     */
     public LoadedPluginHandle<? extends Plugin> loadAnyPlugin(Path artifactPath,
             List<Class<? extends Plugin>> pluginTypes) {
         List<String> failures = new ArrayList<>();
@@ -57,6 +87,12 @@ public class PluginArtifactLoader {
         return (LoadedPluginHandle) loadPlugin(artifactPath, (Class) pluginType);
     }
 
+    /**
+     * Loaded plugin handle with classloader ownership.
+     *
+     * @param <T> loaded plugin type.
+     * @author Arléon Zemtsop (Cerberus)
+     */
     public static final class LoadedPluginHandle<T extends Plugin> implements AutoCloseable {
         private final T plugin;
         private final URLClassLoader classLoader;
@@ -82,6 +118,11 @@ public class PluginArtifactLoader {
             return pluginType;
         }
 
+        /**
+         * Closes the artifact classloader.
+         *
+         * @throws Exception if classloader close fails.
+         */
         @Override
         public void close() throws Exception {
             classLoader.close();
