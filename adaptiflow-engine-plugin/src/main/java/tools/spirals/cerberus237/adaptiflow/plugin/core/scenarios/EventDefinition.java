@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Event definition binding metrics collection, conditional evaluators and
- * adaptation actions.
+ * subscribers.
  */
 public class EventDefinition {
 
@@ -16,7 +16,7 @@ public class EventDefinition {
     private Map<String, Object> parameters = new LinkedHashMap<>();
     private MetricCollectorDefinition collector;
     private List<ConditionalEvaluatorDefinition> evaluators = new ArrayList<>();
-    private List<ActionDefinition> actions = new ArrayList<>();
+    private List<SubscriberDefinition> subscribers = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -58,11 +58,11 @@ public class EventDefinition {
         this.evaluators = evaluators;
     }
 
-    public List<ActionDefinition> getActions() {
-        return actions;
+    public List<SubscriberDefinition> getSubscribers() {
+        return subscribers;
     }
 
-    public void setActions(List<ActionDefinition> actions) {
-        this.actions = actions;
+    public void setSubscribers(List<SubscriberDefinition> subscribers) {
+        this.subscribers = subscribers;
     }
 }

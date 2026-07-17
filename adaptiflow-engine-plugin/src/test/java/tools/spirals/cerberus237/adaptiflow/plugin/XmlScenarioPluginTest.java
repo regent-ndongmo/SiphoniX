@@ -12,6 +12,7 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEva
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.XmlScenarioPlugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
@@ -65,7 +66,11 @@ public class XmlScenarioPluginTest {
         event.setType("ConditionalEvent");
         event.setCollector(collector);
         event.setEvaluators(List.of(evaluator));
-        event.setActions(List.of(action));
+
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("EventSubscriber");
+        subscriber.setActions(List.of(action));
+        event.setSubscribers(List.of(subscriber));
 
         definition.setEvents(List.of(event));
         return definition;

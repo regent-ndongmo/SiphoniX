@@ -17,17 +17,19 @@ scenarios:
               constructorArgs:
                 - 75.0
                 - 80.0
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [EnableExternalImageProvider]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - EnableExternalImageProvider
+        subscribers:
+          - type: EventSubscriber
+            actions:
+              - type: RestAdaptationAction
+                parameters:
+                  constructorArgTypes:
+                    - java.util.List
+                    - java.lang.String
+                    - java.lang.String
+                  constructorArgs:
+                    - [EnableExternalImageProvider]
+                    - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                    - EnableExternalImageProvider
       - id: traffic-decrease
         type: ConditionalEvent
         collector:
@@ -41,14 +43,16 @@ scenarios:
               constructorArgs:
                 - 60.0
                 - 60.0
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [DisableExternalImageProvider]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - DisableExternalImageProvider
+        subscribers:
+          - type: EventSubscriber
+            actions:
+              - type: RestAdaptationAction
+                parameters:
+                  constructorArgTypes:
+                    - java.util.List
+                    - java.lang.String
+                    - java.lang.String
+                  constructorArgs:
+                    - [DisableExternalImageProvider]
+                    - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                    - DisableExternalImageProvider

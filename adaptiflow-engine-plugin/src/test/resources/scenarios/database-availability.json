@@ -23,17 +23,22 @@
               }
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["DatabaseAvailableEventBroadcast"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "EnableExternalImageProvider"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["DatabaseAvailableEventBroadcast"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "EnableExternalImageProvider"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -55,25 +60,30 @@
               }
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["DatabaseUnavailableEventBroadcast"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "DisableExternalImageProvider"
-                ]
-              }
-            },
-            {
-              "type": "DockerActionFactory",
-              "parameters": {
-                "factoryMethod": "unpauseContainer",
-                "factoryArgTypes": ["java.lang.String"],
-                "factoryArgs": ["adaptable_teastore_db"]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["DatabaseUnavailableEventBroadcast"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "DisableExternalImageProvider"
+                    ]
+                  }
+                },
+                {
+                  "type": "DockerActionFactory",
+                  "parameters": {
+                    "factoryMethod": "unpauseContainer",
+                    "factoryArgTypes": ["java.lang.String"],
+                    "factoryArgs": ["adaptable_teastore_db"]
+                  }
+                }
+              ]
             }
           ]
         }

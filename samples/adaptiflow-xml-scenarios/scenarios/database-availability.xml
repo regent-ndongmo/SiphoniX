@@ -21,28 +21,32 @@
             </parameters>
           </evaluator>
         </evaluators>
-        <actions>
-          <action type="RestAdaptationAction">
-            <parameters>
-              <parameter key="constructorArgTypes">
-                <list>
-                  <value>java.util.List</value>
-                  <value>java.lang.String</value>
-                  <value>java.lang.String</value>
-                </list>
-              </parameter>
-              <parameter key="constructorArgs">
-                <list>
-                  <list>
-                    <value>DatabaseAvailableEventBroadcast</value>
-                  </list>
-                  <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
-                  <value>EnableExternalImageProvider</value>
-                </list>
-              </parameter>
-            </parameters>
-          </action>
-        </actions>
+        <subscribers>
+          <subscriber type="EventSubscriber">
+            <actions>
+              <action type="RestAdaptationAction">
+                <parameters>
+                  <parameter key="constructorArgTypes">
+                    <list>
+                      <value>java.util.List</value>
+                      <value>java.lang.String</value>
+                      <value>java.lang.String</value>
+                    </list>
+                  </parameter>
+                  <parameter key="constructorArgs">
+                    <list>
+                      <list>
+                        <value>DatabaseAvailableEventBroadcast</value>
+                      </list>
+                      <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
+                      <value>EnableExternalImageProvider</value>
+                    </list>
+                  </parameter>
+                </parameters>
+              </action>
+            </actions>
+          </subscriber>
+        </subscribers>
       </event>
       <event id="database-unavailable" type="ConditionalEvent">
         <collector type="ResourceUsageCollector"/>
@@ -64,43 +68,47 @@
             </parameters>
           </evaluator>
         </evaluators>
-        <actions>
-          <action type="RestAdaptationAction">
-            <parameters>
-              <parameter key="constructorArgTypes">
-                <list>
-                  <value>java.util.List</value>
-                  <value>java.lang.String</value>
-                  <value>java.lang.String</value>
-                </list>
-              </parameter>
-              <parameter key="constructorArgs">
-                <list>
-                  <list>
-                    <value>DatabaseUnavailableEventBroadcast</value>
-                  </list>
-                  <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
-                  <value>DisableExternalImageProvider</value>
-                </list>
-              </parameter>
-            </parameters>
-          </action>
-          <action type="DockerActionFactory">
-            <parameters>
-              <parameter key="factoryMethod" value="unpauseContainer"/>
-              <parameter key="factoryArgTypes">
-                <list>
-                  <value>java.lang.String</value>
-                </list>
-              </parameter>
-              <parameter key="factoryArgs">
-                <list>
-                  <value>adaptable_teastore_db</value>
-                </list>
-              </parameter>
-            </parameters>
-          </action>
-        </actions>
+        <subscribers>
+          <subscriber type="EventSubscriber">
+            <actions>
+              <action type="RestAdaptationAction">
+                <parameters>
+                  <parameter key="constructorArgTypes">
+                    <list>
+                      <value>java.util.List</value>
+                      <value>java.lang.String</value>
+                      <value>java.lang.String</value>
+                    </list>
+                  </parameter>
+                  <parameter key="constructorArgs">
+                    <list>
+                      <list>
+                        <value>DatabaseUnavailableEventBroadcast</value>
+                      </list>
+                      <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
+                      <value>DisableExternalImageProvider</value>
+                    </list>
+                  </parameter>
+                </parameters>
+              </action>
+              <action type="DockerActionFactory">
+                <parameters>
+                  <parameter key="factoryMethod" value="unpauseContainer"/>
+                  <parameter key="factoryArgTypes">
+                    <list>
+                      <value>java.lang.String</value>
+                    </list>
+                  </parameter>
+                  <parameter key="factoryArgs">
+                    <list>
+                      <value>adaptable_teastore_db</value>
+                    </list>
+                  </parameter>
+                </parameters>
+              </action>
+            </actions>
+          </subscriber>
+        </subscribers>
       </event>
     </events>
   </scenario>

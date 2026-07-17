@@ -1,7 +1,7 @@
 <scenarios>
   <scenario id="cache-size" pluginId="adaptiflow.cache-size" enabled="true" intervalMs="5000">
     <events>
-      <event id="cache-entries" type="ConditionalEvent">
+      <event id="cache-mode" type="ConditionalEvent">
         <collector type="RestMetricsCollector">
           <parameters>
             <parameter key="constructorArgTypes">
@@ -15,9 +15,9 @@
             <parameter key="constructorArgs">
               <list>
                 <value>http://image:8080/tools.descartes.teastore.image/rest</value>
-                <value>/metrics/cache-entries</value>
+                <value>/metrics/cache-mode</value>
                 <value>GET</value>
-                <value>java.util.List</value>
+                <value>java.lang.String</value>
               </list>
             </parameter>
           </parameters>
@@ -25,28 +25,65 @@
         <evaluators>
           <evaluator type="TrueEvaluator"/>
         </evaluators>
-        <actions>
-          <action type="RestAdaptationAction">
-            <parameters>
-              <parameter key="constructorArgTypes">
-                <list>
-                  <value>java.util.List</value>
-                  <value>java.lang.String</value>
-                  <value>java.lang.String</value>
-                </list>
-              </parameter>
-              <parameter key="constructorArgs">
-                <list>
-                  <list>
-                    <value>CacheEntriesObservation</value>
-                  </list>
-                  <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
-                  <value>CacheEntriesObservation</value>
-                </list>
-              </parameter>
-            </parameters>
-          </action>
-        </actions>
+        <subscribers>
+          <subscriber type="EventSubscriber"/>
+        </subscribers>
+      </event>
+      <event id="cache-metrics" type="ConditionalEvent">
+        <collector type="RestMetricsCollector">
+          <parameters>
+            <parameter key="constructorArgTypes">
+              <list>
+                <value>java.lang.String</value>
+                <value>java.lang.String</value>
+                <value>java.lang.String</value>
+                <value>java.lang.Class</value>
+              </list>
+            </parameter>
+            <parameter key="constructorArgs">
+              <list>
+                <value>http://image:8080/tools.descartes.teastore.image/rest</value>
+                <value>/metrics/cache-metrics</value>
+                <value>GET</value>
+                <value>tools.spirals.cerberus237.metricscollectorbase.models.CacheMetrics</value>
+              </list>
+            </parameter>
+          </parameters>
+        </collector>
+        <evaluators>
+          <evaluator type="TrueEvaluator"/>
+        </evaluators>
+        <subscribers>
+          <subscriber type="EventSubscriber"/>
+        </subscribers>
+      </event>
+      <event id="cache-performance" type="ConditionalEvent">
+        <collector type="RestMetricsCollector">
+          <parameters>
+            <parameter key="constructorArgTypes">
+              <list>
+                <value>java.lang.String</value>
+                <value>java.lang.String</value>
+                <value>java.lang.String</value>
+                <value>java.lang.Class</value>
+              </list>
+            </parameter>
+            <parameter key="constructorArgs">
+              <list>
+                <value>http://image:8080/tools.descartes.teastore.image/rest</value>
+                <value>/metrics/cache-performance</value>
+                <value>GET</value>
+                <value>tools.spirals.cerberus237.metricscollectorbase.models.CacheHitMissMetrics</value>
+              </list>
+            </parameter>
+          </parameters>
+        </collector>
+        <evaluators>
+          <evaluator type="TrueEvaluator"/>
+        </evaluators>
+        <subscribers>
+          <subscriber type="EventSubscriber"/>
+        </subscribers>
       </event>
     </events>
   </scenario>

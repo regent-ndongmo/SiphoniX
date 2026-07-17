@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import tools.spirals.cerberus237.adaptiflow.plugin.runtime.XmlScenarioMapParser;
-
 /**
  * XML-backed configuration manager for scenarios.
  */

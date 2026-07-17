@@ -14,6 +14,7 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEva
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioPlugin;
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioRuntimeFactoryImpl;
 
@@ -46,7 +47,11 @@ public class YamlScenarioPluginTest {
         event.setType("ConditionalEvent");
         event.setCollector(collector);
         event.setEvaluators(List.of(evaluator));
-        event.setActions(List.of(action));
+
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("EventSubscriber");
+        subscriber.setActions(List.of(action));
+        event.setSubscribers(List.of(subscriber));
 
         definition.setEvents(List.of(event));
 
@@ -80,7 +85,11 @@ public class YamlScenarioPluginTest {
         event.setId("invalid");
         event.setCollector(collector);
         event.setEvaluators(List.of(evaluator));
-        event.setActions(List.of(action));
+
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("EventSubscriber");
+        subscriber.setActions(List.of(action));
+        event.setSubscribers(List.of(subscriber));
 
         definition.setEvents(List.of(event));
 
@@ -112,7 +121,44 @@ public class YamlScenarioPluginTest {
         event.setType("tools.spirals.cerberus237.adaptiflow.events.ConditionalEvent");
         event.setCollector(collector);
         event.setEvaluators(List.of(evaluator));
-        event.setActions(List.of(action));
+
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("EventSubscriber");
+        subscriber.setActions(List.of(action));
+        event.setSubscribers(List.of(subscriber));
+
+        definition.setEvents(List.of(event));
+
+        ScenarioPlugin plugin = new ScenarioPlugin(definition, new ScenarioRuntimeFactoryImpl());
+        plugin.initialize(new DefaultPluginContext());
+        plugin.start();
+        plugin.stop();
+
+        Assert.assertEquals(PluginState.STOPPED, plugin.getState());
+    }
+
+    @Test
+    public void shouldAllowEmptyActionListWhenSubscribersAreConfigured() {
+        ScenarioDefinition definition = new ScenarioDefinition();
+        definition.setId("subscriber-only-scenario");
+        definition.setPluginId("adaptiflow.dynamic");
+        definition.setIntervalMs(1000);
+
+        MetricCollectorDefinition collector = new MetricCollectorDefinition();
+        collector.setType("ResourceUsageCollector");
+
+        ConditionalEvaluatorDefinition evaluator = new ConditionalEvaluatorDefinition();
+        evaluator.setType("TrueEvaluator");
+
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("EventSubscriber");
+
+        EventDefinition event = new EventDefinition();
+        event.setId("subscriber-only");
+        event.setType("ConditionalEvent");
+        event.setCollector(collector);
+        event.setEvaluators(List.of(evaluator));
+        event.setSubscribers(List.of(subscriber));
 
         definition.setEvents(List.of(event));
 

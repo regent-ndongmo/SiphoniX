@@ -25,28 +25,32 @@
         <evaluators>
           <evaluator type="TrueEvaluator"/>
         </evaluators>
-        <actions>
-          <action type="RestAdaptationAction">
-            <parameters>
-              <parameter key="constructorArgTypes">
-                <list>
-                  <value>java.util.List</value>
-                  <value>java.lang.String</value>
-                  <value>java.lang.String</value>
-                </list>
-              </parameter>
-              <parameter key="constructorArgs">
-                <list>
-                  <list>
-                    <value>CacheEntriesObservation</value>
-                  </list>
-                  <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
-                  <value>CacheEntriesObservation</value>
-                </list>
-              </parameter>
-            </parameters>
-          </action>
-        </actions>
+        <subscribers>
+          <subscriber type="EventSubscriber">
+            <actions>
+              <action type="RestAdaptationAction">
+                <parameters>
+                  <parameter key="constructorArgTypes">
+                    <list>
+                      <value>java.util.List</value>
+                      <value>java.lang.String</value>
+                      <value>java.lang.String</value>
+                    </list>
+                  </parameter>
+                  <parameter key="constructorArgs">
+                    <list>
+                      <list>
+                        <value>CacheEntriesObservation</value>
+                      </list>
+                      <value>http://image:8080/tools.descartes.teastore.image/rest/adapt</value>
+                      <value>CacheEntriesObservation</value>
+                    </list>
+                  </parameter>
+                </parameters>
+              </action>
+            </actions>
+          </subscriber>
+        </subscribers>
       </event>
     </events>
   </scenario>

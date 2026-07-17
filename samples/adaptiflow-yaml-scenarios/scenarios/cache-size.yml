@@ -21,17 +21,8 @@ scenarios:
               - java.util.List
         evaluators:
           - type: TrueEvaluator
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [CacheEntriesObservation]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - CacheEntriesObservation
+        subscribers:
+          - type: EventSubscriber
       - id: cache-mode
         type: ConditionalEvent
         collector:
@@ -49,17 +40,8 @@ scenarios:
               - java.lang.String
         evaluators:
           - type: TrueEvaluator
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [CacheModeObservation]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - CacheModeObservation
+        subscribers:
+          - type: EventSubscriber
       - id: cache-metrics
         type: ConditionalEvent
         collector:
@@ -77,17 +59,8 @@ scenarios:
               - tools.spirals.cerberus237.metricscollectorbase.models.CacheMetrics
         evaluators:
           - type: TrueEvaluator
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [CacheMetricsObservation]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - CacheMetricsObservation
+        subscribers:
+          - type: EventSubscriber
       - id: cache-performance
         type: ConditionalEvent
         collector:
@@ -105,14 +78,5 @@ scenarios:
               - tools.spirals.cerberus237.metricscollectorbase.models.CacheHitMissMetrics
         evaluators:
           - type: TrueEvaluator
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [CachePerformanceObservation]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - CachePerformanceObservation
+        subscribers:
+          - type: EventSubscriber

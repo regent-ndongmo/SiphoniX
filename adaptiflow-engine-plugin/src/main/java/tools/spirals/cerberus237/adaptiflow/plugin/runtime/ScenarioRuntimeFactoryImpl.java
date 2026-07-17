@@ -22,6 +22,7 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinitio
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ObservationSchedulerDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefinition;
 import tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers.EventSubscriber;
 import tools.spirals.cerberus237.metricscollectorbase.IMetricsCollector;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
@@ -58,13 +59,15 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
     private static final List<String> EVENT_PACKAGES = List.of(
             "tools.spirals.cerberus237.adaptiflow.events");
 
+        private static final List<String> SUBSCRIBER_PACKAGES = List.of(
+            "tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers");
+
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public Event buildEvent(ScenarioDefinition scenario, EventDefinition eventDefinition, PluginContext context) {
         Event event = createEvent(scenario, eventDefinition, context);
 
-        List<IAdaptationAction> actions = createActions(eventDefinition.getActions(), scenario.getId());
-        List<Observer<Object>> subscribers = List.of(new EventSubscriber(actions));
+        List<Observer<Object>> subscribers = createSubscribers(eventDefinition.getSubscribers(), scenario.getId());
         event.subscribeAll(subscribers);
         return event;
     }
@@ -108,11 +111,29 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
 
     private List<IAdaptationAction> createActions(List<ActionDefinition> actionDefinitions, String scenarioId) {
         List<IAdaptationAction> actions = new ArrayList<>();
+        if (actionDefinitions == null) {
+            return actions;
+        }
         for (ActionDefinition actionDefinition : actionDefinitions) {
             ComponentSpec spec = resolveActionSpec(actionDefinition);
             actions.add(createComponent(spec.className, spec.parameters, IAdaptationAction.class, scenarioId));
         }
         return actions;
+    }
+
+    private List<Observer<Object>> createSubscribers(List<SubscriberDefinition> subscriberDefinitions,
+            String scenarioId) {
+        if (subscriberDefinitions == null || subscriberDefinitions.isEmpty()) {
+            return List.of(new EventSubscriber(List.of()));
+        }
+
+        List<Observer<Object>> subscribers = new ArrayList<>();
+        for (SubscriberDefinition subscriberDefinition : subscriberDefinitions) {
+            List<IAdaptationAction> actions = createActions(subscriberDefinition.getActions(), scenarioId);
+            ComponentSpec spec = resolveSubscriberSpec(subscriberDefinition, actions);
+            subscribers.add(createComponent(spec.className, spec.parameters, Observer.class, scenarioId));
+        }
+        return subscribers;
     }
 
     private ComponentSpec resolveCollectorSpec(MetricCollectorDefinition definition) {
@@ -132,6 +153,24 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
     private ComponentSpec resolveActionSpec(ActionDefinition definition) {
         String className = resolveClassName(definition.getType(), ACTION_PACKAGES);
         Map<String, Object> parameters = cloneParameters(definition.getParameters());
+
+        return new ComponentSpec(className, parameters);
+    }
+
+    private ComponentSpec resolveSubscriberSpec(SubscriberDefinition definition, List<IAdaptationAction> actions) {
+        String className = resolveClassName(definition.getType(), SUBSCRIBER_PACKAGES);
+        Map<String, Object> parameters = cloneParameters(definition.getParameters());
+
+        List<String> typeNames = new ArrayList<>();
+        typeNames.add("java.util.List");
+        typeNames.addAll(stringList(parameters.getOrDefault(CONSTRUCTOR_ARG_TYPES, List.of())));
+
+        List<Object> constructorArgs = new ArrayList<>();
+        constructorArgs.add(actions);
+        constructorArgs.addAll(objectList(parameters.getOrDefault(CONSTRUCTOR_ARGS, List.of())));
+
+        parameters.put(CONSTRUCTOR_ARG_TYPES, typeNames);
+        parameters.put(CONSTRUCTOR_ARGS, constructorArgs);
 
         return new ComponentSpec(className, parameters);
     }

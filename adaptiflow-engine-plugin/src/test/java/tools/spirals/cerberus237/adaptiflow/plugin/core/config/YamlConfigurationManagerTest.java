@@ -16,6 +16,7 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEva
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefinition;
 
 public class YamlConfigurationManagerTest {
 
@@ -58,17 +59,17 @@ public class YamlConfigurationManagerTest {
                         + "              constructorArgs:\n"
                         + "                - 75\n"
                         + "                - 80\n"
-                + "        actions:\n"
-                        + "          - type: RestAdaptationAction\n"
-                + "            parameters:\n"
-                        + "              constructorArgTypes:\n"
-                        + "                - java.util.List\n"
-                        + "                - java.lang.String\n"
-                        + "                - java.lang.String\n"
-                        + "              constructorArgs:\n"
-                        + "                - [EnableExternalImageProvider]\n"
-                        + "                - http://localhost/adapt\n"
-                        + "                - EnableExternalImageProvider\n");
+                + "        subscribers:\n"
+                        + "          - type: EventSubscriber\n"
+                + "            actions:\n"
+                        + "              - type: RestAdaptationAction\n"
+                + "                parameters:\n"
+                        + "                  constructorArgTypes:\n"
+                        + "                    - java.lang.String\n"
+                        + "                    - java.lang.String\n"
+                        + "                  constructorArgs:\n"
+                        + "                    - http://localhost/adapt\n"
+                        + "                    - EnableExternalImageProvider\n");
 
         YamlConfigurationManager manager = new YamlConfigurationManager();
         AdaptiflowConfiguration configuration = manager.load(tempFile);
@@ -86,8 +87,10 @@ public class YamlConfigurationManagerTest {
         Assert.assertEquals(1, event.getEvaluators().size());
         Assert.assertEquals("IncreaseResourceUsageEvaluator", event.getEvaluators().get(0).getType());
         Assert.assertEquals(80, ((Number) ((List<?>) event.getEvaluators().get(0).getParameters().get("constructorArgs")).get(1)).intValue());
-        Assert.assertEquals(1, event.getActions().size());
-        Assert.assertEquals("RestAdaptationAction", event.getActions().get(0).getType());
+        Assert.assertEquals(1, event.getSubscribers().size());
+        Assert.assertEquals("EventSubscriber", event.getSubscribers().get(0).getType());
+        Assert.assertEquals(1, event.getSubscribers().get(0).getActions().size());
+        Assert.assertEquals("RestAdaptationAction", event.getSubscribers().get(0).getActions().get(0).getType());
     }
 
     @Test
@@ -125,7 +128,10 @@ public class YamlConfigurationManagerTest {
                 List.of("DatabaseUnavailableEventBroadcast"),
                 "http://localhost/adapt",
                 "DatabaseUnavailableEventBroadcast"))));
-        event.setActions(List.of(action));
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("EventSubscriber");
+        subscriber.setActions(List.of(action));
+        event.setSubscribers(List.of(subscriber));
 
         scenario.setEvents(List.of(event));
 
@@ -148,7 +154,9 @@ public class YamlConfigurationManagerTest {
         Assert.assertEquals("ConditionalEvent", reloadedEvent.getType());
         Assert.assertEquals("RestMetricsCollector", reloadedEvent.getCollector().getType());
         Assert.assertEquals("DecreaseResourceUsageEvaluator", reloadedEvent.getEvaluators().get(0).getType());
-        Assert.assertEquals("RestAdaptationAction", reloadedEvent.getActions().get(0).getType());
+        Assert.assertEquals(1, reloadedEvent.getSubscribers().size());
+        Assert.assertEquals("EventSubscriber", reloadedEvent.getSubscribers().get(0).getType());
+        Assert.assertEquals("RestAdaptationAction", reloadedEvent.getSubscribers().get(0).getActions().get(0).getType());
     }
 
     @Test(expected = InvalidConfigurationException.class)
@@ -182,4 +190,40 @@ public class YamlConfigurationManagerTest {
         YamlConfigurationManager manager = new YamlConfigurationManager();
         manager.load(tempFile);
     }
+
+        @Test
+        public void shouldAllowEventWithSubscribersAndEmptyActions() throws IOException {
+                Path tempFile = createWritableTempFile("siphonix-empty-actions");
+                Files.writeString(tempFile,
+                                "scenarios:\n"
+                                                + "  cache-observation:\n"
+                                                + "    pluginId: adaptiflow.cache-size\n"
+                                                + "    enabled: true\n"
+                                                + "    intervalMs: 5000\n"
+                                                + "    events:\n"
+                                                + "      - id: cache-watch\n"
+                                                + "        type: ConditionalEvent\n"
+                                                + "        collector:\n"
+                                                + "          type: RestMetricsCollector\n"
+                                                + "        evaluators:\n"
+                                                + "          - type: TrueEvaluator\n"
+                                                + "        subscribers:\n"
+                                                + "          - type: EventCounterSubscriber\n"
+                                                + "            parameters:\n"
+                                                + "              constructorArgTypes:\n"
+                                                + "                - int\n"
+                                                + "              constructorArgs:\n"
+                                                + "                - 3\n");
+
+                YamlConfigurationManager manager = new YamlConfigurationManager();
+                AdaptiflowConfiguration configuration = manager.load(tempFile);
+
+                EventDefinition event = configuration.getScenarios().get("cache-observation").getEvents().get(0);
+                Assert.assertEquals(1, event.getSubscribers().size());
+                Assert.assertEquals("EventCounterSubscriber", event.getSubscribers().get(0).getType());
+                Assert.assertEquals(0, event.getSubscribers().get(0).getActions().size());
+                Assert.assertEquals(3,
+                                ((Number) ((List<?>) event.getSubscribers().get(0).getParameters().get("constructorArgs")).get(0))
+                                                .intValue());
+        }
 }

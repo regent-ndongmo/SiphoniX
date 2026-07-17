@@ -30,17 +30,22 @@
               "type": "TrueEvaluator"
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["CacheEntriesObservation"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "CacheEntriesObservation"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["CacheEntriesObservation"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "CacheEntriesObservation"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -69,17 +74,22 @@
               "type": "TrueEvaluator"
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["CacheModeObservation"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "CacheModeObservation"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["CacheModeObservation"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "CacheModeObservation"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -108,17 +118,22 @@
               "type": "TrueEvaluator"
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["CacheMetricsObservation"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "CacheMetricsObservation"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["CacheMetricsObservation"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "CacheMetricsObservation"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -147,17 +162,22 @@
               "type": "TrueEvaluator"
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["CachePerformanceObservation"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "CachePerformanceObservation"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["CachePerformanceObservation"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "CachePerformanceObservation"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         }

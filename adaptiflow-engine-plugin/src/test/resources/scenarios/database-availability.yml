@@ -17,17 +17,19 @@ scenarios:
               constructorArgs:
                 - 75.0
                 - 80.0
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [DatabaseAvailableEventBroadcast]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - EnableExternalImageProvider
+        subscribers:
+          - type: EventSubscriber
+            actions:
+              - type: RestAdaptationAction
+                parameters:
+                  constructorArgTypes:
+                    - java.util.List
+                    - java.lang.String
+                    - java.lang.String
+                  constructorArgs:
+                    - [DatabaseAvailableEventBroadcast]
+                    - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                    - EnableExternalImageProvider
       - id: database-unavailable
         type: ConditionalEvent
         collector:
@@ -41,21 +43,23 @@ scenarios:
               constructorArgs:
                 - 60.0
                 - 60.0
-        actions:
-          - type: RestAdaptationAction
-            parameters:
-              constructorArgTypes:
-                - java.util.List
-                - java.lang.String
-                - java.lang.String
-              constructorArgs:
-                - [DatabaseUnavailableEventBroadcast]
-                - http://image:8080/tools.descartes.teastore.image/rest/adapt
-                - DisableExternalImageProvider
-          - type: DockerActionFactory
-            parameters:
-              factoryMethod: unpauseContainer
-              factoryArgTypes:
-                - java.lang.String
-              factoryArgs:
-                - adaptable_teastore_db
+        subscribers:
+          - type: EventSubscriber
+            actions:
+              - type: RestAdaptationAction
+                parameters:
+                  constructorArgTypes:
+                    - java.util.List
+                    - java.lang.String
+                    - java.lang.String
+                  constructorArgs:
+                    - [DatabaseUnavailableEventBroadcast]
+                    - http://image:8080/tools.descartes.teastore.image/rest/adapt
+                    - DisableExternalImageProvider
+              - type: DockerActionFactory
+                parameters:
+                  factoryMethod: unpauseContainer
+                  factoryArgTypes:
+                    - java.lang.String
+                  factoryArgs:
+                    - adaptable_teastore_db

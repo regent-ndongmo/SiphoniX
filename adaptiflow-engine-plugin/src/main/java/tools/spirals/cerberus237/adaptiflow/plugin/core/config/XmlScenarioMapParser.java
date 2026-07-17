@@ -1,4 +1,4 @@
-package tools.spirals.cerberus237.adaptiflow.plugin.runtime;
+package tools.spirals.cerberus237.adaptiflow.plugin.core.config;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -121,17 +121,30 @@ public final class XmlScenarioMapParser {
         }
         eventMap.put("evaluators", evaluators);
 
-        List<Object> actions = new ArrayList<>();
-        Element actionsElement = firstChildByTag(eventElement, "actions");
-        if (actionsElement != null) {
-            for (Element actionElement : childrenByTag(actionsElement, "action")) {
-                Map<String, Object> actionMap = new LinkedHashMap<>();
-                putIfPresent(actionMap, "type", actionElement.getAttribute("type"));
-                actionMap.put("parameters", parseParameters(actionElement));
-                actions.add(actionMap);
+        List<Object> subscribers = new ArrayList<>();
+        Element subscribersElement = firstChildByTag(eventElement, "subscribers");
+        if (subscribersElement != null) {
+            for (Element subscriberElement : childrenByTag(subscribersElement, "subscriber")) {
+                Map<String, Object> subscriberMap = new LinkedHashMap<>();
+                putIfPresent(subscriberMap, "type", subscriberElement.getAttribute("type"));
+                subscriberMap.put("parameters", parseParameters(subscriberElement));
+
+                List<Object> actions = new ArrayList<>();
+                Element actionsElement = firstChildByTag(subscriberElement, "actions");
+                if (actionsElement != null) {
+                    for (Element actionElement : childrenByTag(actionsElement, "action")) {
+                        Map<String, Object> actionMap = new LinkedHashMap<>();
+                        putIfPresent(actionMap, "type", actionElement.getAttribute("type"));
+                        actionMap.put("parameters", parseParameters(actionElement));
+                        actions.add(actionMap);
+                    }
+                }
+                subscriberMap.put("actions", actions);
+
+                subscribers.add(subscriberMap);
             }
         }
-        eventMap.put("actions", actions);
+        eventMap.put("subscribers", subscribers);
 
         return eventMap;
     }

@@ -23,17 +23,22 @@
               }
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["EnableExternalImageProvider"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "EnableExternalImageProvider"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["EnableExternalImageProvider"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "EnableExternalImageProvider"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -55,17 +60,22 @@
               }
             }
           ],
-          "actions": [
+          "subscribers": [
             {
-              "type": "RestAdaptationAction",
-              "parameters": {
-                "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
-                "constructorArgs": [
-                  ["DisableExternalImageProvider"],
-                  "http://image:8080/tools.descartes.teastore.image/rest/adapt",
-                  "DisableExternalImageProvider"
-                ]
-              }
+              "type": "EventSubscriber",
+              "actions": [
+                {
+                  "type": "RestAdaptationAction",
+                  "parameters": {
+                    "constructorArgTypes": ["java.util.List", "java.lang.String", "java.lang.String"],
+                    "constructorArgs": [
+                      ["DisableExternalImageProvider"],
+                      "http://image:8080/tools.descartes.teastore.image/rest/adapt",
+                      "DisableExternalImageProvider"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         }

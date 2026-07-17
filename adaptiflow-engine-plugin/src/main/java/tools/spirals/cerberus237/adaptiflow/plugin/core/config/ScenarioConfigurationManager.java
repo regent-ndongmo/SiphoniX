@@ -11,6 +11,7 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinitio
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ObservationSchedulerDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefinition;
 
 /**
  * Shared map-to-domain mapping for scenario configuration regardless of source
@@ -103,7 +104,7 @@ public class ScenarioConfigurationManager {
         event.setParameters(mapValue(eventMap.get("parameters")));
         event.setCollector(mapCollector(scenarioId, eventMap));
         event.setEvaluators(mapEvaluators(scenarioId, eventMap));
-        event.setActions(mapActions(scenarioId, eventMap));
+        event.setSubscribers(mapSubscribers(scenarioId, eventMap));
         return event;
     }
 
@@ -153,11 +154,15 @@ public class ScenarioConfigurationManager {
         return evaluators;
     }
 
-    protected List<ActionDefinition> mapActions(String scenarioId, Map<String, Object> eventMap) {
-        Object rawActions = eventMap.get("actions");
+    protected List<ActionDefinition> mapActions(String scenarioId, String eventId, Map<String, Object> ownerMap) {
+        Object rawActions = ownerMap.get("actions");
+        if (rawActions == null) {
+            return new ArrayList<>();
+        }
         if (!(rawActions instanceof List)) {
             throw new InvalidConfigurationException(
-                    "Scenario '" + scenarioId + "' must define an actions list for each event");
+                    "Scenario '" + scenarioId + "' event '" + eventId
+                            + "' must define an actions list for each subscriber");
         }
 
         List<?> actionItems = (List<?>) rawActions;
@@ -165,7 +170,7 @@ public class ScenarioConfigurationManager {
         for (Object actionItem : actionItems) {
             if (!(actionItem instanceof Map)) {
                 throw new InvalidConfigurationException(
-                        "Scenario '" + scenarioId + "' contains an invalid action entry");
+                        "Scenario '" + scenarioId + "' event '" + eventId + "' contains an invalid action entry");
             }
             @SuppressWarnings("unchecked")
             Map<String, Object> actionMap = (Map<String, Object>) actionItem;
@@ -176,6 +181,36 @@ public class ScenarioConfigurationManager {
             actions.add(action);
         }
         return actions;
+    }
+
+    protected List<SubscriberDefinition> mapSubscribers(String scenarioId, Map<String, Object> eventMap) {
+        String eventId = stringValue(eventMap.get("id"));
+        Object rawSubscribers = eventMap.get("subscribers");
+        if (rawSubscribers == null) {
+            return new ArrayList<>();
+        }
+        if (!(rawSubscribers instanceof List)) {
+            throw new InvalidConfigurationException(
+                    "Scenario '" + scenarioId + "' must define a subscribers list for each event");
+        }
+
+        List<?> subscriberItems = (List<?>) rawSubscribers;
+        List<SubscriberDefinition> subscribers = new ArrayList<>();
+        for (Object subscriberItem : subscriberItems) {
+            if (!(subscriberItem instanceof Map)) {
+                throw new InvalidConfigurationException(
+                        "Scenario '" + scenarioId + "' contains an invalid subscriber entry");
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> subscriberMap = (Map<String, Object>) subscriberItem;
+
+            SubscriberDefinition subscriber = new SubscriberDefinition();
+            subscriber.setType(stringValue(subscriberMap.get("type")));
+            subscriber.setParameters(mapValue(subscriberMap.get("parameters")));
+            subscriber.setActions(mapActions(scenarioId, eventId, subscriberMap));
+            subscribers.add(subscriber);
+        }
+        return subscribers;
     }
 
     protected Map<String, Object> toMap(AdaptiflowConfiguration configuration) {
@@ -252,14 +287,21 @@ public class ScenarioConfigurationManager {
             }
         }
 
-        if (event.getActions() == null || event.getActions().isEmpty()) {
-            throw new InvalidConfigurationException(
-                    "Scenario '" + scenarioId + "' event '" + event.getId() + "' must define at least one action");
-        }
-        for (ActionDefinition action : event.getActions()) {
-            if (action.getType() == null || action.getType().trim().isEmpty()) {
-                throw new InvalidConfigurationException(
-                        "Scenario '" + scenarioId + "' event '" + event.getId() + "' has an action with missing type");
+        if (event.getSubscribers() != null) {
+            for (SubscriberDefinition subscriber : event.getSubscribers()) {
+                if (subscriber.getType() == null || subscriber.getType().trim().isEmpty()) {
+                    throw new InvalidConfigurationException(
+                            "Scenario '" + scenarioId + "' event '" + event.getId() + "' has a subscriber with missing type");
+                }
+                if (subscriber.getActions() != null) {
+                    for (ActionDefinition action : subscriber.getActions()) {
+                        if (action.getType() == null || action.getType().trim().isEmpty()) {
+                            throw new InvalidConfigurationException(
+                                    "Scenario '" + scenarioId + "' event '" + event.getId()
+                                            + "' has a subscriber action with missing type");
+                        }
+                    }
+                }
             }
         }
     }
@@ -294,14 +336,28 @@ public class ScenarioConfigurationManager {
                 eventMap.put("evaluators", evaluatorMaps);
             }
 
-            List<Map<String, Object>> actionMaps = new ArrayList<>();
-            for (ActionDefinition action : event.getActions()) {
-                Map<String, Object> actionMap = new LinkedHashMap<>();
-                actionMap.put("type", action.getType());
-                actionMap.put("parameters", action.getParameters());
-                actionMaps.add(actionMap);
+            if (event.getSubscribers() != null && !event.getSubscribers().isEmpty()) {
+                List<Map<String, Object>> subscriberMaps = new ArrayList<>();
+                for (SubscriberDefinition subscriber : event.getSubscribers()) {
+                    Map<String, Object> subscriberMap = new LinkedHashMap<>();
+                    subscriberMap.put("type", subscriber.getType());
+                    subscriberMap.put("parameters", subscriber.getParameters());
+
+                    List<Map<String, Object>> actionMaps = new ArrayList<>();
+                    if (subscriber.getActions() != null) {
+                        for (ActionDefinition action : subscriber.getActions()) {
+                            Map<String, Object> actionMap = new LinkedHashMap<>();
+                            actionMap.put("type", action.getType());
+                            actionMap.put("parameters", action.getParameters());
+                            actionMaps.add(actionMap);
+                        }
+                    }
+                    subscriberMap.put("actions", actionMaps);
+
+                    subscriberMaps.add(subscriberMap);
+                }
+                eventMap.put("subscribers", subscriberMaps);
             }
-            eventMap.put("actions", actionMaps);
 
             rawEvents.add(eventMap);
         }
