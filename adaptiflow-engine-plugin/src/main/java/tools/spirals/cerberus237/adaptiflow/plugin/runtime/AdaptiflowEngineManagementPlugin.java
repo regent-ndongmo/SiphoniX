@@ -22,8 +22,12 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefini
 
 public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugin {
 
+    private static final String YAML_FILE_SOURCE_TYPE = "yaml-file";
+    private static final String JSON_FILE_SOURCE_TYPE = "json-file";
+
     private final Map<String, ScenarioDefinition> scenarios = new LinkedHashMap<>();
-    private final Map<String, YamlScenarioPlugin> runtimePlugins = new LinkedHashMap<>();
+    private final ScenarioRuntimeFactory runtimeFactory = new YamlScenarioRuntimeFactory();
+    private final Map<String, ScenarioPlugin> runtimePlugins = new LinkedHashMap<>();
 
     private final ScenarioManagementService service = new ServiceImpl();
     private final ScenarioManagementRestApi restApi = new RestImpl();
@@ -60,7 +64,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
     @Override
     public synchronized void start() {
-        for (YamlScenarioPlugin plugin : runtimePlugins.values()) {
+        for (ScenarioPlugin plugin : runtimePlugins.values()) {
             if (plugin.getState() != PluginState.RUNNING) {
                 plugin.start();
             }
@@ -70,7 +74,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
     @Override
     public synchronized void stop() {
-        for (YamlScenarioPlugin plugin : runtimePlugins.values()) {
+        for (ScenarioPlugin plugin : runtimePlugins.values()) {
             plugin.stop();
         }
         state = PluginState.STOPPED;
@@ -107,7 +111,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     private void ensureMaterialized(ScenarioDefinition scenario) {
         String scenarioId = scenario.getId();
 
-        YamlScenarioPlugin previous = runtimePlugins.remove(scenarioId);
+        ScenarioPlugin previous = runtimePlugins.remove(scenarioId);
         if (previous != null && previous.getState() == PluginState.RUNNING) {
             previous.stop();
         }
@@ -116,7 +120,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
             return;
         }
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(scenario);
+        ScenarioPlugin plugin = new ScenarioPlugin(scenario, runtimeFactory);
         if (pluginContext != null) {
             plugin.initialize(pluginContext);
             if (state == PluginState.RUNNING) {
@@ -128,7 +132,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     }
 
     private synchronized AdaptiflowConfiguration loadConfiguration(ScenarioSource source) throws IOException {
-        if ("yaml-file".equals(source.getType()) && source.getReference() != null) {
+        if (isFileSource(source) && source.getReference() != null) {
             Path sourcePath = Path.of(source.getReference());
             if (Files.exists(sourcePath)) {
                 return configurationManager.load(sourcePath);
@@ -172,7 +176,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         public synchronized void deleteScenario(String scenarioId) {
             requireScenario(scenarioId);
             scenarios.remove(scenarioId);
-            YamlScenarioPlugin plugin = runtimePlugins.remove(scenarioId);
+            ScenarioPlugin plugin = runtimePlugins.remove(scenarioId);
             if (plugin != null) {
                 plugin.stop();
             }
@@ -240,12 +244,14 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
         @Override
         public void applyScenario(String sourcePath) throws IOException {
-            service.createScenario(new PathScenarioSource(Path.of(sourcePath)));
+            Path path = Path.of(sourcePath);
+            service.createScenario(new PathScenarioSource(path, detectSourceType(path)));
         }
 
         @Override
         public void updateScenario(String scenarioId, String sourcePath) throws IOException {
-            service.updateScenario(scenarioId, new PathScenarioSource(Path.of(sourcePath)));
+            Path path = Path.of(sourcePath);
+            service.updateScenario(scenarioId, new PathScenarioSource(path, detectSourceType(path)));
         }
 
         @Override
@@ -254,17 +260,31 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         }
     }
 
+    private boolean isFileSource(ScenarioSource source) {
+        return YAML_FILE_SOURCE_TYPE.equals(source.getType()) || JSON_FILE_SOURCE_TYPE.equals(source.getType());
+    }
+
+    private String detectSourceType(Path path) {
+        String fileName = path.getFileName() == null ? "" : path.getFileName().toString().toLowerCase();
+        if (fileName.endsWith(".json")) {
+            return JSON_FILE_SOURCE_TYPE;
+        }
+        return YAML_FILE_SOURCE_TYPE;
+    }
+
     private static final class PathScenarioSource implements ScenarioSource {
 
         private final Path path;
+        private final String type;
 
-        private PathScenarioSource(Path path) {
+        private PathScenarioSource(Path path, String type) {
             this.path = path;
+            this.type = type;
         }
 
         @Override
         public String getType() {
-            return "yaml-file";
+            return type;
         }
 
         @Override

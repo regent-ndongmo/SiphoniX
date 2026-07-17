@@ -16,7 +16,8 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.config.AdaptiflowConfigu
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEvaluatorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
-import tools.spirals.cerberus237.adaptiflow.plugin.runtime.YamlScenarioPlugin;
+import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioPlugin;
+import tools.spirals.cerberus237.adaptiflow.plugin.runtime.YamlScenarioRuntimeFactory;
 
 public class SampleYamlScenarioIntegrationTest {
 
@@ -31,7 +32,7 @@ public class SampleYamlScenarioIntegrationTest {
         assertSupplierThresholds(scenario.getEvents().get(0).getEvaluators().get(0), List.of(75.0, 80.0));
         assertSupplierThresholds(scenario.getEvents().get(1).getEvaluators().get(0), List.of(60.0, 60.0));
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(scenario);
+        ScenarioPlugin plugin = new ScenarioPlugin(scenario, new YamlScenarioRuntimeFactory());
         plugin.initialize(new DefaultPluginContext());
 
         Assert.assertEquals("scenario.benin-traffic", plugin.getId());
@@ -49,7 +50,7 @@ public class SampleYamlScenarioIntegrationTest {
         assertSupplierThresholds(scenario.getEvents().get(0).getEvaluators().get(0), List.of(75.0, 80.0));
         assertSupplierThresholds(scenario.getEvents().get(1).getEvaluators().get(0), List.of(60.0, 60.0));
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(scenario);
+        ScenarioPlugin plugin = new ScenarioPlugin(scenario, new YamlScenarioRuntimeFactory());
         plugin.initialize(new DefaultPluginContext());
 
         Assert.assertEquals("scenario.database-availability", plugin.getId());
@@ -64,7 +65,7 @@ public class SampleYamlScenarioIntegrationTest {
         Assert.assertEquals("RestMetricsCollector", scenario.getEvents().get(0).getCollector().getType());
         Assert.assertEquals("TrueEvaluator", scenario.getEvents().get(0).getEvaluators().get(0).getType());
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(scenario);
+        ScenarioPlugin plugin = new ScenarioPlugin(scenario, new YamlScenarioRuntimeFactory());
         plugin.initialize(new DefaultPluginContext());
 
         Assert.assertEquals("scenario.cache-size", plugin.getId());

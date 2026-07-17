@@ -14,7 +14,8 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEva
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
-import tools.spirals.cerberus237.adaptiflow.plugin.runtime.YamlScenarioPlugin;
+import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioPlugin;
+import tools.spirals.cerberus237.adaptiflow.plugin.runtime.YamlScenarioRuntimeFactory;
 
 public class YamlScenarioPluginTest {
 
@@ -49,7 +50,7 @@ public class YamlScenarioPluginTest {
 
         definition.setEvents(List.of(event));
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(definition);
+        ScenarioPlugin plugin = new ScenarioPlugin(definition, new YamlScenarioRuntimeFactory());
         plugin.initialize(new DefaultPluginContext());
         plugin.start();
         plugin.stop();
@@ -83,7 +84,7 @@ public class YamlScenarioPluginTest {
 
         definition.setEvents(List.of(event));
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(definition);
+        ScenarioPlugin plugin = new ScenarioPlugin(definition, new YamlScenarioRuntimeFactory());
         plugin.initialize(new DefaultPluginContext());
     }
 
@@ -115,7 +116,7 @@ public class YamlScenarioPluginTest {
 
         definition.setEvents(List.of(event));
 
-        YamlScenarioPlugin plugin = new YamlScenarioPlugin(definition);
+        ScenarioPlugin plugin = new ScenarioPlugin(definition, new YamlScenarioRuntimeFactory());
         plugin.initialize(new DefaultPluginContext());
         plugin.start();
         plugin.stop();

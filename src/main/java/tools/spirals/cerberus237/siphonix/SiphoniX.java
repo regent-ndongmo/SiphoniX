@@ -6,9 +6,11 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManagementPlugin;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
+import tools.spirals.cerberus237.siphonix.kernel.loading.JsonFileScenarioSource;
 import tools.spirals.cerberus237.siphonix.kernel.loading.PluginArtifactLoader;
 import tools.spirals.cerberus237.siphonix.kernel.loading.YamlFileScenarioSource;
 
@@ -61,8 +63,10 @@ public class SiphoniX {
 
             String configPath = System.getenv(CONFIG_PATH_ENV);
             if (configPath != null && !configPath.trim().isEmpty()) {
+                Path scenarioPath = Path.of(configPath.trim());
+                ScenarioSource scenarioSource = sourceFromPath(scenarioPath);
                 plugin.getScenarioManagementService().createScenario(
-                        new YamlFileScenarioSource(Path.of(configPath.trim())));
+                        scenarioSource);
                 logger.info("[SiphoniX] Applied scenario source {} through external plugin", configPath);
             } else {
                 logger.warn("[SiphoniX] No {} configured. Plugin loaded without initial scenarios", CONFIG_PATH_ENV);
@@ -73,6 +77,14 @@ public class SiphoniX {
             logger.error("[SiphoniX] Failed to load external scenario plugin from {}", artifactPath, ex);
             return false;
         }
+    }
+
+    private static ScenarioSource sourceFromPath(Path path) {
+        String fileName = path.getFileName() == null ? "" : path.getFileName().toString().toLowerCase();
+        if (fileName.endsWith(".json")) {
+            return new JsonFileScenarioSource(path);
+        }
+        return new YamlFileScenarioSource(path);
     }
 
 }
