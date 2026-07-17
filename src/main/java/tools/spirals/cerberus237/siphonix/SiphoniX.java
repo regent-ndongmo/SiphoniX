@@ -12,6 +12,7 @@ import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 import tools.spirals.cerberus237.siphonix.kernel.loading.JsonFileScenarioSource;
 import tools.spirals.cerberus237.siphonix.kernel.loading.PluginArtifactLoader;
+import tools.spirals.cerberus237.siphonix.kernel.loading.XmlFileScenarioSource;
 import tools.spirals.cerberus237.siphonix.kernel.loading.YamlFileScenarioSource;
 
 public class SiphoniX {
@@ -83,6 +84,9 @@ public class SiphoniX {
         String fileName = path.getFileName() == null ? "" : path.getFileName().toString().toLowerCase();
         if (fileName.endsWith(".json")) {
             return new JsonFileScenarioSource(path);
+        }
+        if (fileName.endsWith(".xml")) {
+            return new XmlFileScenarioSource(path);
         }
         return new YamlFileScenarioSource(path);
     }

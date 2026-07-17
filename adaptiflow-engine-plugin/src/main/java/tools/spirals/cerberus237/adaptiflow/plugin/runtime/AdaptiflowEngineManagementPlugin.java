@@ -16,6 +16,7 @@ import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManageme
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManagementService;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioValidationResult;
+import tools.spirals.cerberus237.siphonix.kernel.loading.XmlScenarioMapParser;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.AdaptiflowConfiguration;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
@@ -24,6 +25,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
     private static final String YAML_FILE_SOURCE_TYPE = "yaml-file";
     private static final String JSON_FILE_SOURCE_TYPE = "json-file";
+    private static final String XML_FILE_SOURCE_TYPE = "xml-file";
 
     private final Map<String, ScenarioDefinition> scenarios = new LinkedHashMap<>();
     private final ScenarioRuntimeFactory runtimeFactory = new YamlScenarioRuntimeFactory();
@@ -135,6 +137,9 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         if (isFileSource(source) && source.getReference() != null) {
             Path sourcePath = Path.of(source.getReference());
             if (Files.exists(sourcePath)) {
+                if (XML_FILE_SOURCE_TYPE.equals(source.getType())) {
+                    return configurationManager.loadFromMap(XmlScenarioMapParser.parse(sourcePath));
+                }
                 return configurationManager.load(sourcePath);
             }
         }
@@ -261,13 +266,18 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     }
 
     private boolean isFileSource(ScenarioSource source) {
-        return YAML_FILE_SOURCE_TYPE.equals(source.getType()) || JSON_FILE_SOURCE_TYPE.equals(source.getType());
+        return YAML_FILE_SOURCE_TYPE.equals(source.getType())
+                || JSON_FILE_SOURCE_TYPE.equals(source.getType())
+                || XML_FILE_SOURCE_TYPE.equals(source.getType());
     }
 
     private String detectSourceType(Path path) {
         String fileName = path.getFileName() == null ? "" : path.getFileName().toString().toLowerCase();
         if (fileName.endsWith(".json")) {
             return JSON_FILE_SOURCE_TYPE;
+        }
+        if (fileName.endsWith(".xml")) {
+            return XML_FILE_SOURCE_TYPE;
         }
         return YAML_FILE_SOURCE_TYPE;
     }
