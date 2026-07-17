@@ -29,6 +29,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     private static final String YAML_FILE_SOURCE_TYPE = "yaml-file";
     private static final String JSON_FILE_SOURCE_TYPE = "json-file";
     private static final String XML_FILE_SOURCE_TYPE = "xml-file";
+    private static final String PATH_FILE_SOURCE_TYPE = "path-file";
 
     private final Map<String, ScenarioDefinition> scenarios = new LinkedHashMap<>();
     private final ScenarioRuntimeFactory runtimeFactory = new ScenarioRuntimeFactoryImpl();
@@ -157,10 +158,25 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         if (isFileSource(source) && source.getReference() != null) {
             Path sourcePath = Path.of(source.getReference());
             if (Files.exists(sourcePath)) {
-                return managerForSourceType(source.getType()).load(sourcePath);
+                return managerForSourceType(resolveSourceType(source)).load(sourcePath);
             }
         }
         return scenarioConfigurationManager.loadFromMap(source.load());
+    }
+
+    private String resolveSourceType(ScenarioSource source) {
+        String sourceType = source.getType();
+        if (XML_FILE_SOURCE_TYPE.equals(sourceType)
+                || JSON_FILE_SOURCE_TYPE.equals(sourceType)
+                || YAML_FILE_SOURCE_TYPE.equals(sourceType)) {
+            return sourceType;
+        }
+
+        if (source.getReference() != null && !source.getReference().trim().isEmpty()) {
+            return detectSourceType(Path.of(source.getReference()));
+        }
+
+        return normalizeSourceType(sourceType);
     }
 
     private synchronized ScenarioDefinition requireScenario(String scenarioId) {
@@ -175,7 +191,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
         @Override
         public synchronized void createScenario(ScenarioSource source) throws IOException {
-            upsertScenarios(loadConfiguration(source), true, source.getType());
+            upsertScenarios(loadConfiguration(source), true, resolveSourceType(source));
         }
 
         @Override
@@ -191,7 +207,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
             }
 
             scenarios.put(scenarioId, replacement);
-            scenarioSourceTypes.put(scenarioId, normalizeSourceType(source.getType()));
+            scenarioSourceTypes.put(scenarioId, normalizeSourceType(resolveSourceType(source)));
             ensureMaterialized(replacement);
         }
 
@@ -287,7 +303,8 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     private boolean isFileSource(ScenarioSource source) {
         return YAML_FILE_SOURCE_TYPE.equals(source.getType())
                 || JSON_FILE_SOURCE_TYPE.equals(source.getType())
-                || XML_FILE_SOURCE_TYPE.equals(source.getType());
+                || XML_FILE_SOURCE_TYPE.equals(source.getType())
+                || PATH_FILE_SOURCE_TYPE.equals(source.getType());
     }
 
     private String detectSourceType(Path path) {
