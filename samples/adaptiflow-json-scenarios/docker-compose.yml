@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  registry:
+    image: cerberus237/adaptable-teastore-registry
+    restart: unless-stopped
+    environment:
+      HOST_NAME: "registry"
+
+  image:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+      args:
+        SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
+        ADAPTIFLOW_PLUGIN: ${ADAPTIFLOW_PLUGIN:-./adaptiflow-engine-plugin.jar}
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      HOST_NAME: "image"
+      REGISTRY_HOST: "registry"
+      TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
+      SIPHONIX_CONFIG: "/opt/siphonix/scenarios/${SCENARIO_FILE:-benin-traffic}.json"
+      SIPHONIX_PLUGIN_ARTIFACT: "/usr/local/tomcat/bin/adaptiflow-engine-plugin.jar"
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scenarios:/opt/siphonix/scenarios:ro
+
+  db:
+    image: cerberus237/adaptable-teastore-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+
+  persistence:
+    image: cerberus237/adaptable-teastore-persistence
+    restart: unless-stopped
+    environment:
+      HOST_NAME: "persistence"
+      REGISTRY_HOST: "registry"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  webui:
+    image: cerberus237/adaptable-teastore-webui
+    restart: unless-stopped
+    environment:
+      HOST_NAME: "webui"
+      REGISTRY_HOST: "registry"
+    ports:
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
