@@ -2,6 +2,7 @@ package tools.spirals.cerberus237.siphonix.kernel.loading;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
@@ -26,6 +27,6 @@ public class XmlFileScenarioSource implements ScenarioSource {
 
     @Override
     public Map<String, Object> load() throws IOException {
-        return XmlScenarioMapParser.parse(path);
+        return new LinkedHashMap<>();
     }
 }

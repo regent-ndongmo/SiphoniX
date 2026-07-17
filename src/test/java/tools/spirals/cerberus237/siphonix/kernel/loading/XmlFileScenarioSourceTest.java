@@ -12,7 +12,7 @@ import org.junit.Test;
 public class XmlFileScenarioSourceTest {
 
     @Test
-    public void shouldExposeXmlTypeAndParseScenarioMap() throws IOException {
+    public void shouldExposeXmlTypeAndReferenceWithoutParsing() throws IOException {
         Path xmlPath = createScenarioXml();
 
         XmlFileScenarioSource source = new XmlFileScenarioSource(xmlPath);
@@ -20,7 +20,7 @@ public class XmlFileScenarioSourceTest {
 
         Assert.assertEquals("xml-file", source.getType());
         Assert.assertEquals(xmlPath.toString(), source.getReference());
-        Assert.assertTrue(root.containsKey("scenarios"));
+        Assert.assertTrue(root.isEmpty());
     }
 
     private Path createScenarioXml() throws IOException {

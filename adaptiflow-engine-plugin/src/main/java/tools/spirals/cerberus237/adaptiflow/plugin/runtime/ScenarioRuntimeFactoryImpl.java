@@ -26,7 +26,7 @@ import tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers.EventSubsc
 import tools.spirals.cerberus237.metricscollectorbase.IMetricsCollector;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
 
-public class YamlScenarioRuntimeFactory implements ScenarioRuntimeFactory {
+public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
 
     private static final String CONSTRUCTOR_ARG_TYPES = "constructorArgTypes";
     private static final String CONSTRUCTOR_ARGS = "constructorArgs";

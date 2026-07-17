@@ -12,9 +12,9 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * YAML-backed configuration manager for scenarios.
+ * JSON-backed configuration manager for scenarios.
  */
-public class YamlConfigurationManager extends ScenarioConfigurationManager implements ConfigurationManager {
+public class JsonConfigurationManager extends ScenarioConfigurationManager implements ConfigurationManager {
 
     @Override
     public AdaptiflowConfiguration load(Path path) throws IOException {
@@ -22,6 +22,7 @@ public class YamlConfigurationManager extends ScenarioConfigurationManager imple
             return new AdaptiflowConfiguration();
         }
 
+        // SnakeYAML can parse JSON because JSON is a subset of YAML.
         Yaml yaml = new Yaml();
         try (InputStream inputStream = Files.newInputStream(path)) {
             @SuppressWarnings("unchecked")

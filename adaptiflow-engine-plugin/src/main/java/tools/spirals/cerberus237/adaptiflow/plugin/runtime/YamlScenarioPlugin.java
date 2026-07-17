@@ -10,6 +10,6 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefini
 public class YamlScenarioPlugin extends ScenarioPlugin {
 
     public YamlScenarioPlugin(ScenarioDefinition scenario) {
-        super(scenario, new YamlScenarioRuntimeFactory());
+        super(scenario, new ScenarioRuntimeFactoryImpl());
     }
 }

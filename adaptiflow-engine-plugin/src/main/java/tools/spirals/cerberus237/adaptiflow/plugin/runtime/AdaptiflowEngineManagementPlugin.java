@@ -16,8 +16,11 @@ import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManageme
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManagementService;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioValidationResult;
-import tools.spirals.cerberus237.siphonix.kernel.loading.XmlScenarioMapParser;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.AdaptiflowConfiguration;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.config.ConfigurationManager;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.config.JsonConfigurationManager;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.config.ScenarioConfigurationManager;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.config.XmlConfigurationManager;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
 
@@ -28,14 +31,16 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     private static final String XML_FILE_SOURCE_TYPE = "xml-file";
 
     private final Map<String, ScenarioDefinition> scenarios = new LinkedHashMap<>();
-    private final ScenarioRuntimeFactory runtimeFactory = new YamlScenarioRuntimeFactory();
+    private final ScenarioRuntimeFactory runtimeFactory = new ScenarioRuntimeFactoryImpl();
+    private final Map<String, String> scenarioSourceTypes = new LinkedHashMap<>();
     private final Map<String, ScenarioPlugin> runtimePlugins = new LinkedHashMap<>();
 
     private final ScenarioManagementService service = new ServiceImpl();
     private final ScenarioManagementRestApi restApi = new RestImpl();
     private final ScenarioManagementCli cli = new CliImpl();
 
-    private final YamlConfigurationManager configurationManager = new YamlConfigurationManager();
+    private final ScenarioConfigurationManager scenarioConfigurationManager = new ScenarioConfigurationManager();
+    private final Map<String, ConfigurationManager> configurationManagers = createConfigurationManagers();
 
     private PluginState state = PluginState.CREATED;
     private PluginContext pluginContext;
@@ -98,6 +103,11 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     }
 
     private synchronized void upsertScenarios(AdaptiflowConfiguration configuration, boolean failOnDuplicate) {
+        upsertScenarios(configuration, failOnDuplicate, YAML_FILE_SOURCE_TYPE);
+    }
+
+    private synchronized void upsertScenarios(AdaptiflowConfiguration configuration, boolean failOnDuplicate,
+            String sourceType) {
         for (Map.Entry<String, ScenarioDefinition> entry : configuration.getScenarios().entrySet()) {
             String scenarioId = entry.getKey();
             if (failOnDuplicate && scenarios.containsKey(scenarioId)) {
@@ -106,6 +116,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
             ScenarioDefinition definition = entry.getValue();
             scenarios.put(scenarioId, definition);
+            scenarioSourceTypes.put(scenarioId, normalizeSourceType(sourceType));
             ensureMaterialized(definition);
         }
     }
@@ -122,7 +133,16 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
             return;
         }
 
-        ScenarioPlugin plugin = new ScenarioPlugin(scenario, runtimeFactory);
+        String sourceType = scenarioSourceTypes.getOrDefault(scenarioId, YAML_FILE_SOURCE_TYPE);
+        ScenarioPlugin plugin;
+        if (XML_FILE_SOURCE_TYPE.equals(sourceType)) {
+            plugin = new XmlScenarioPlugin(scenario);
+        } else if (YAML_FILE_SOURCE_TYPE.equals(sourceType)) {
+            plugin = new YamlScenarioPlugin(scenario);
+        } else {
+            plugin = new ScenarioPlugin(scenario, runtimeFactory);
+        }
+
         if (pluginContext != null) {
             plugin.initialize(pluginContext);
             if (state == PluginState.RUNNING) {
@@ -137,13 +157,10 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         if (isFileSource(source) && source.getReference() != null) {
             Path sourcePath = Path.of(source.getReference());
             if (Files.exists(sourcePath)) {
-                if (XML_FILE_SOURCE_TYPE.equals(source.getType())) {
-                    return configurationManager.loadFromMap(XmlScenarioMapParser.parse(sourcePath));
-                }
-                return configurationManager.load(sourcePath);
+                return managerForSourceType(source.getType()).load(sourcePath);
             }
         }
-        return configurationManager.loadFromMap(source.load());
+        return scenarioConfigurationManager.loadFromMap(source.load());
     }
 
     private synchronized ScenarioDefinition requireScenario(String scenarioId) {
@@ -158,7 +175,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
 
         @Override
         public synchronized void createScenario(ScenarioSource source) throws IOException {
-            upsertScenarios(loadConfiguration(source), true);
+            upsertScenarios(loadConfiguration(source), true, source.getType());
         }
 
         @Override
@@ -174,6 +191,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
             }
 
             scenarios.put(scenarioId, replacement);
+            scenarioSourceTypes.put(scenarioId, normalizeSourceType(source.getType()));
             ensureMaterialized(replacement);
         }
 
@@ -181,6 +199,7 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         public synchronized void deleteScenario(String scenarioId) {
             requireScenario(scenarioId);
             scenarios.remove(scenarioId);
+            scenarioSourceTypes.remove(scenarioId);
             ScenarioPlugin plugin = runtimePlugins.remove(scenarioId);
             if (plugin != null) {
                 plugin.stop();
@@ -280,6 +299,29 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
             return XML_FILE_SOURCE_TYPE;
         }
         return YAML_FILE_SOURCE_TYPE;
+    }
+
+    private String normalizeSourceType(String sourceType) {
+        if (XML_FILE_SOURCE_TYPE.equals(sourceType)) {
+            return XML_FILE_SOURCE_TYPE;
+        }
+        if (JSON_FILE_SOURCE_TYPE.equals(sourceType)) {
+            return JSON_FILE_SOURCE_TYPE;
+        }
+        return YAML_FILE_SOURCE_TYPE;
+    }
+
+    private Map<String, ConfigurationManager> createConfigurationManagers() {
+        Map<String, ConfigurationManager> managers = new LinkedHashMap<>();
+        managers.put(YAML_FILE_SOURCE_TYPE, new YamlConfigurationManager());
+        managers.put(JSON_FILE_SOURCE_TYPE, new JsonConfigurationManager());
+        managers.put(XML_FILE_SOURCE_TYPE, new XmlConfigurationManager());
+        return managers;
+    }
+
+    private ConfigurationManager managerForSourceType(String sourceType) {
+        String normalizedType = normalizeSourceType(sourceType);
+        return configurationManagers.get(normalizedType);
     }
 
     private static final class PathScenarioSource implements ScenarioSource {

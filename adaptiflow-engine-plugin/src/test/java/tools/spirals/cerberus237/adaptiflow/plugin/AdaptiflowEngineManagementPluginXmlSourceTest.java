@@ -1,6 +1,7 @@
 package tools.spirals.cerberus237.adaptiflow.plugin;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,18 +11,33 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.AdaptiflowEngineManagementPlugin;
+import tools.spirals.cerberus237.adaptiflow.plugin.runtime.XmlScenarioPlugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
 
 public class AdaptiflowEngineManagementPluginXmlSourceTest {
 
     @Test
     public void shouldCreateScenarioFromXmlFileSource() throws IOException {
-        Path xmlPath = writeXmlScenarioFile("xml-service-source");
+        String scenarioId = "xml-service-source";
+        Path xmlPath = writeXmlScenarioFile(scenarioId);
 
         AdaptiflowEngineManagementPlugin plugin = new AdaptiflowEngineManagementPlugin();
         plugin.getScenarioManagementService().createScenario(new FileScenarioSource("xml-file", xmlPath));
 
-        Assert.assertTrue(plugin.getScenarioManagementService().listScenarios().contains("xml-service-source"));
+        Assert.assertTrue(plugin.getScenarioManagementService().listScenarios().contains(scenarioId));
+        Assert.assertTrue(resolveRuntimePlugin(plugin, scenarioId) instanceof XmlScenarioPlugin);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object resolveRuntimePlugin(AdaptiflowEngineManagementPlugin plugin, String scenarioId) {
+        try {
+            Field runtimePluginsField = AdaptiflowEngineManagementPlugin.class.getDeclaredField("runtimePlugins");
+            runtimePluginsField.setAccessible(true);
+            Map<String, Object> runtimePlugins = (Map<String, Object>) runtimePluginsField.get(plugin);
+            return runtimePlugins.get(scenarioId);
+        } catch (ReflectiveOperationException ex) {
+            throw new AssertionError("Unable to inspect runtime plugin registry", ex);
+        }
     }
 
     @Test
