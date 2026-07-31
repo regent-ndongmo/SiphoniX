@@ -15,15 +15,13 @@ services:
         SIPHONIX: ${SIPHONIX:-./siphonix-app.jar}
     restart: unless-stopped
     environment:
-      PORT: 8080
+      PORT: 8081
       HOST_NAME: "image"
       REGISTRY_HOST: "registry"
-      TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
+      TARGET_URL: "http://image:8081/tools.descartes.teastore.image/rest"
       SIPHONIX_CONFIG: "/opt/siphonix/scenarios/${SCENARIO_FILE:-benin-traffic}.yml"
       SIPHONIX_PLUGIN_DIR: "/opt/siphonix/plugins"
       SIPHONIX_PLUGIN_DISCOVERY_MODE: "${SIPHONIX_PLUGIN_DISCOVERY_MODE:-watch-auto}"
-    ports:
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./scenarios:/opt/siphonix/scenarios:ro
@@ -46,6 +44,15 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  auth:
+    image: cerberus237/adaptable-teastore-auth
+    restart: unless-stopped
+    environment:
+      HOST_NAME: "auth"
+      REGISTRY_HOST: "registry"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
   webui:
     image: cerberus237/adaptable-teastore-webui
     restart: unless-stopped
@@ -53,6 +60,8 @@ services:
       HOST_NAME: "webui"
       REGISTRY_HOST: "registry"
     ports:
-      - "8081:8080"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+

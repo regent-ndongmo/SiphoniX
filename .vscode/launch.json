@@ -1,0 +1,55 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Attach: YAML Sample Tomcat",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005,
+            "sourcePaths": [
+                "${workspaceFolder}/samples/adaptiflow-yaml-scenarios",
+                "${workspaceFolder}/src/main/java",
+                "${workspaceFolder}/adaptiflow-engine-plugin/src/main/java"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Attach: YAML Sample SiphoniX + AdaptiFlow",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5006,
+            "sourcePaths": [
+                "${workspaceFolder}/src/main/java",
+                "${workspaceFolder}/adaptiflow-engine-plugin/src/main/java"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Launch: SiphoniX (YAML sample plugin dir)",
+            "request": "launch",
+            "mainClass": "tools.spirals.cerberus237.siphonix.SiphoniX",
+            "projectName": "siphonix",
+            "args": "--plugin-dir ${workspaceFolder}/samples/adaptiflow-yaml-scenarios/plugins --plugin-discovery-mode watch-auto",
+            "env": {
+                "SIPHONIX_CONFIG": "${workspaceFolder}/samples/adaptiflow-yaml-scenarios/scenarios/benin-traffic.debug.yml",
+                "TARGET_URL": "http://localhost:8081/tools.descartes.teastore.image/rest"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug: YAML Sample (Attach Tomcat + SiphoniX)",
+            "configurations": [
+                "Attach: YAML Sample Tomcat",
+                "Attach: YAML Sample SiphoniX + AdaptiFlow"
+            ]
+        }
+    ]
+}
