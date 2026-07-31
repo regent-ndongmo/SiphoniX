@@ -181,20 +181,117 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         String className = resolveClassName(configuredType, EVENT_PACKAGES);
         Map<String, Object> parameters = cloneParameters(definition.getParameters());
 
-        if (isConditionalEventClass(className)
-                && !parameters.containsKey(CONSTRUCTOR_ARG_TYPES)
-                && !parameters.containsKey(CONSTRUCTOR_ARGS)) {
-            IMetricsCollector<?> collector = createCollector(scenario, definition.getCollector(), context);
-            ConditionalEvaluatorDefinition primaryEvaluator = definition.getEvaluators().get(0);
-            ConditionEvaluator<?> evaluator = createEvaluator(scenario, primaryEvaluator);
-
-            parameters.put(CONSTRUCTOR_ARG_TYPES, List.of(
-                    "tools.spirals.cerberus237.metricscollectorbase.IMetricsCollector",
-                    "tools.spirals.cerberus237.adaptiflow.interfaces.ConditionEvaluator"));
-            parameters.put(CONSTRUCTOR_ARGS, List.of(collector, evaluator));
-        }
+        populateEventConstructorMetadata(className, scenario, definition, context, parameters);
 
         return new ComponentSpec(className, parameters);
+    }
+
+    private void populateEventConstructorMetadata(String className, ScenarioDefinition scenario,
+            EventDefinition definition, PluginContext context, Map<String, Object> parameters) {
+        if (parameters.containsKey(CONSTRUCTOR_ARG_TYPES) || parameters.containsKey(CONSTRUCTOR_ARGS)) {
+            return;
+        }
+        if (definition.getCollector() == null || definition.getEvaluators() == null || definition.getEvaluators().isEmpty()) {
+            return;
+        }
+
+        IMetricsCollector<?> collector = createCollector(scenario, definition.getCollector(), context);
+        ConditionEvaluator<?> evaluator = createEvaluator(scenario, definition.getEvaluators().get(0));
+        String eventId = stringOrDefault(definition.getId(), "");
+
+        try {
+            Class<?> eventClass = Class.forName(className);
+            ConstructorMatch match = findCompatibleEventConstructor(eventClass, eventId, collector, evaluator);
+            if (match == null) {
+                return;
+            }
+
+            parameters.put(CONSTRUCTOR_ARG_TYPES, match.typeNames);
+            parameters.put(CONSTRUCTOR_ARGS, match.arguments);
+        } catch (ClassNotFoundException ex) {
+            throw new InvalidConfigurationException("Class not found: " + className);
+        }
+    }
+
+    private ConstructorMatch findCompatibleEventConstructor(Class<?> eventClass, String eventId,
+            IMetricsCollector<?> collector, ConditionEvaluator<?> evaluator) {
+        if (!eventId.isEmpty()) {
+            for (Constructor<?> constructor : eventClass.getConstructors()) {
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
+                if (parameterTypes.length != 3) {
+                    continue;
+                }
+                if (isCompatibleStringParameter(parameterTypes[0])
+                        && isCompatibleParameter(parameterTypes[1], collector)
+                        && isCompatibleParameter(parameterTypes[2], evaluator)) {
+                    List<String> typeNames = List.of(
+                            typeNameFor(parameterTypes[0]),
+                            typeNameFor(parameterTypes[1]),
+                            typeNameFor(parameterTypes[2]));
+                    return new ConstructorMatch(typeNames, List.of(eventId, collector, evaluator));
+                }
+            }
+        }
+
+        for (Constructor<?> constructor : eventClass.getConstructors()) {
+            Class<?>[] parameterTypes = constructor.getParameterTypes();
+            if (parameterTypes.length != 2) {
+                continue;
+            }
+            if (isCompatibleParameter(parameterTypes[0], collector)
+                    && isCompatibleParameter(parameterTypes[1], evaluator)) {
+                List<String> typeNames = List.of(typeNameFor(parameterTypes[0]), typeNameFor(parameterTypes[1]));
+                return new ConstructorMatch(typeNames, List.of(collector, evaluator));
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isCompatibleStringParameter(Class<?> parameterType) {
+        return parameterType == String.class
+                || parameterType.isAssignableFrom(String.class)
+                || "java.lang.String".equals(parameterType.getName());
+    }
+
+    private boolean isCompatibleParameter(Class<?> parameterType, Object value) {
+        if (value == null) {
+            return !parameterType.isPrimitive();
+        }
+        if (parameterType.isInstance(value) || parameterType.isAssignableFrom(value.getClass())) {
+            return true;
+        }
+
+        String targetTypeName = parameterType.getName();
+        Class<?> inspected = value.getClass();
+        while (inspected != null) {
+            if (targetTypeName.equals(inspected.getName())) {
+                return true;
+            }
+            for (Class<?> iface : inspected.getInterfaces()) {
+                if (targetTypeName.equals(iface.getName())) {
+                    return true;
+                }
+            }
+            inspected = inspected.getSuperclass();
+        }
+        return false;
+    }
+
+    private String typeNameFor(Class<?> type) {
+        if (type == int.class) {
+            return "int";
+        }
+        if (type == long.class) {
+            return "long";
+        }
+        if (type == double.class) {
+            return "double";
+        }
+        if (type == boolean.class) {
+            return "boolean";
+        }
+        return type.getName();
     }
 
     private <T> T createComponent(String className, Map<String, Object> parameters, Class<T> expectedType,
@@ -344,10 +441,6 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         if (!classExists(className)) {
             throw new InvalidConfigurationException("Class not found: " + className);
         }
-    }
-
-    private boolean isConditionalEventClass(String className) {
-        return className.endsWith("ConditionalEvent");
     }
 
     private Class<?> resolveType(String typeName) throws ClassNotFoundException {
@@ -564,6 +657,16 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         private ComponentSpec(String className, Map<String, Object> parameters) {
             this.className = className;
             this.parameters = parameters;
+        }
+    }
+
+    private static final class ConstructorMatch {
+        private final List<String> typeNames;
+        private final List<Object> arguments;
+
+        private ConstructorMatch(List<String> typeNames, List<Object> arguments) {
+            this.typeNames = typeNames;
+            this.arguments = arguments;
         }
     }
 }
