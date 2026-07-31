@@ -85,11 +85,37 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         String className = resolveClassName(schedulerType, SCHEDULER_PACKAGES);
 
         if (!parameters.containsKey(CONSTRUCTOR_ARG_TYPES) && !parameters.containsKey(CONSTRUCTOR_ARGS)) {
-            parameters.put(CONSTRUCTOR_ARG_TYPES, List.of("java.util.List", "int"));
-            parameters.put(CONSTRUCTOR_ARGS, List.of(events, scenario.getIntervalMs()));
+            populateSchedulerConstructorMetadata(className, scenario, events, parameters);
         }
 
         return createComponent(className, parameters, Object.class, scenario.getId());
+    }
+
+    private void populateSchedulerConstructorMetadata(String className, ScenarioDefinition scenario, List<Event> events,
+            Map<String, Object> parameters) {
+        try {
+            Class<?> schedulerClass = Class.forName(className);
+
+            for (Constructor<?> constructor : schedulerClass.getConstructors()) {
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
+                if (parameterTypes.length == 3
+                        && isCompatibleParameter(parameterTypes[0], events)
+                        && isCompatibleParameter(parameterTypes[1], Integer.valueOf(scenario.getIntervalMs()))
+                        && isCompatibleStringParameter(parameterTypes[2])) {
+                    parameters.put(CONSTRUCTOR_ARG_TYPES, List.of(
+                            typeNameFor(parameterTypes[0]),
+                            typeNameFor(parameterTypes[1]),
+                            typeNameFor(parameterTypes[2])));
+                    parameters.put(CONSTRUCTOR_ARGS, List.of(events, scenario.getIntervalMs(), scenario.getPluginId()));
+                    return;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            throw new InvalidConfigurationException("Class not found: " + className);
+        }
+
+        parameters.put(CONSTRUCTOR_ARG_TYPES, List.of("java.util.List", "int"));
+        parameters.put(CONSTRUCTOR_ARGS, List.of(events, scenario.getIntervalMs()));
     }
 
     private Event createEvent(ScenarioDefinition scenario, EventDefinition eventDefinition, PluginContext context) {
@@ -258,6 +284,9 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         if (value == null) {
             return !parameterType.isPrimitive();
         }
+        if (isPrimitiveWrapperCompatible(parameterType, value.getClass())) {
+            return true;
+        }
         if (parameterType.isInstance(value) || parameterType.isAssignableFrom(value.getClass())) {
             return true;
         }
@@ -274,6 +303,22 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
                 }
             }
             inspected = inspected.getSuperclass();
+        }
+        return false;
+    }
+
+    private boolean isPrimitiveWrapperCompatible(Class<?> parameterType, Class<?> valueType) {
+        if (parameterType == int.class) {
+            return valueType == Integer.class;
+        }
+        if (parameterType == long.class) {
+            return valueType == Long.class;
+        }
+        if (parameterType == double.class) {
+            return valueType == Double.class;
+        }
+        if (parameterType == boolean.class) {
+            return valueType == Boolean.class;
         }
         return false;
     }

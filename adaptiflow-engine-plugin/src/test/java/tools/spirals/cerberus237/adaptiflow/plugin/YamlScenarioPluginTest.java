@@ -15,12 +15,35 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ActionDefiniti
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEvaluatorDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.MetricCollectorDefinition;
+import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ObservationSchedulerDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioPlugin;
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioRuntimeFactoryImpl;
+import tools.spirals.cerberus237.adaptiflow.subscriptions.TestExtensibleSchedulerWithId;
 
 public class YamlScenarioPluginTest {
+
+    @Test
+    public void shouldInstantiateSchedulerWithScenarioPluginIdWhenSupported() {
+        ScenarioDefinition definition = new ScenarioDefinition();
+        definition.setId("scheduler-with-plugin-id");
+        definition.setPluginId("adaptiflow.scheduler.plugin-id");
+        definition.setIntervalMs(1500);
+
+        ObservationSchedulerDefinition scheduler = new ObservationSchedulerDefinition();
+        scheduler.setType("TestExtensibleSchedulerWithId");
+        definition.setScheduler(scheduler);
+
+        ScenarioRuntimeFactoryImpl factory = new ScenarioRuntimeFactoryImpl();
+        Object created = factory.createScheduler(definition, List.of());
+
+        Assert.assertTrue(created instanceof TestExtensibleSchedulerWithId);
+        TestExtensibleSchedulerWithId typed = (TestExtensibleSchedulerWithId) created;
+        Assert.assertEquals("adaptiflow.scheduler.plugin-id", typed.getPluginId());
+        Assert.assertEquals(1500, typed.getIntervalMs());
+        Assert.assertEquals(0, typed.getEvents().size());
+    }
 
     @Test
     public void shouldInstantiateConditionalEventUsingNameAwareConstructor() throws Exception {
