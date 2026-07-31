@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
-import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioManagementPlugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.management.ScenarioSource;
 import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
