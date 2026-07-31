@@ -1,5 +1,6 @@
 package tools.spirals.cerberus237.adaptiflow.plugin;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import org.junit.Test;
 
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.siphonix.kernel.DefaultPluginContext;
+import tools.spirals.cerberus237.adaptiflow.events.Event;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.InvalidConfigurationException;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ActionDefinition;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ConditionalEvaluatorDefinition;
@@ -19,6 +21,74 @@ import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioPlugin;
 import tools.spirals.cerberus237.adaptiflow.plugin.runtime.ScenarioRuntimeFactoryImpl;
 
 public class YamlScenarioPluginTest {
+
+    @Test
+    public void shouldInstantiateConditionalEventUsingNameAwareConstructor() throws Exception {
+        ScenarioDefinition definition = new ScenarioDefinition();
+        definition.setId("name-aware-scenario");
+        definition.setPluginId("adaptiflow.dynamic");
+        definition.setIntervalMs(1000);
+
+        MetricCollectorDefinition collector = new MetricCollectorDefinition();
+        collector.setType("ResourceUsageCollector");
+
+        ConditionalEvaluatorDefinition evaluator = new ConditionalEvaluatorDefinition();
+        evaluator.setType("TrueEvaluator");
+
+        EventDefinition eventDefinition = new EventDefinition();
+        eventDefinition.setId("event-name-from-spec");
+        eventDefinition.setType("ConditionalEvent");
+        eventDefinition.setCollector(collector);
+        eventDefinition.setEvaluators(List.of(evaluator));
+
+        ScenarioRuntimeFactoryImpl factory = new ScenarioRuntimeFactoryImpl();
+        Event event = factory.buildEvent(definition, eventDefinition, new DefaultPluginContext());
+
+        Field nameField = Event.class.getDeclaredField("name");
+        nameField.setAccessible(true);
+
+        Assert.assertEquals("event-name-from-spec", nameField.get(event));
+    }
+
+    @Test
+    public void shouldResolveNewCollectorEvaluatorAndSubscriberClassesByShortNames() throws Exception {
+        ScenarioDefinition definition = new ScenarioDefinition();
+        definition.setId("extensibility-scenario");
+        definition.setPluginId("adaptiflow.dynamic");
+        definition.setIntervalMs(1000);
+
+        MetricCollectorDefinition collector = new MetricCollectorDefinition();
+        collector.setType("TestExtensibleCollector");
+
+        ConditionalEvaluatorDefinition evaluator = new ConditionalEvaluatorDefinition();
+        evaluator.setType("TestExtensibleEvaluator");
+
+        SubscriberDefinition subscriber = new SubscriberDefinition();
+        subscriber.setType("TestExtensibleSubscriber");
+
+        EventDefinition eventDefinition = new EventDefinition();
+        eventDefinition.setId("dynamic-event");
+        eventDefinition.setType("ConditionalEvent");
+        eventDefinition.setCollector(collector);
+        eventDefinition.setEvaluators(List.of(evaluator));
+        eventDefinition.setSubscribers(List.of(subscriber));
+
+        ScenarioRuntimeFactoryImpl factory = new ScenarioRuntimeFactoryImpl();
+        Event event = factory.buildEvent(definition, eventDefinition, new DefaultPluginContext());
+
+        Field collectorField = Event.class.getDeclaredField("collector");
+        collectorField.setAccessible(true);
+        Object collectorInstance = collectorField.get(event);
+        Assert.assertEquals("TestExtensibleCollector", collectorInstance.getClass().getSimpleName());
+
+        Field evaluatorField = event.getClass().getDeclaredField("conditionEvaluator");
+        evaluatorField.setAccessible(true);
+        Object evaluatorInstance = evaluatorField.get(event);
+        Assert.assertEquals("TestExtensibleEvaluator", evaluatorInstance.getClass().getSimpleName());
+
+        Assert.assertEquals(1, event.getSubscribers().size());
+        Assert.assertEquals("TestExtensibleSubscriber", event.getSubscribers().get(0).getClass().getSimpleName());
+    }
 
     @Test
     public void shouldInitializeAndRunYamlScenarioPlugin() {
