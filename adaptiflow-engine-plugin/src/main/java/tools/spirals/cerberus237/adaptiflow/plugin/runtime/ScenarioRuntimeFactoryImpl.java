@@ -93,25 +93,15 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
 
     private void populateSchedulerConstructorMetadata(String className, ScenarioDefinition scenario, List<Event> events,
             Map<String, Object> parameters) {
-        try {
-            Class<?> schedulerClass = Class.forName(className);
+        List<ConstructorInvocationCandidate> candidates = List.of(
+            candidate(events, Integer.valueOf(scenario.getIntervalMs()), scenario.getPluginId()),
+            candidate(events, Integer.valueOf(scenario.getIntervalMs())));
 
-            for (Constructor<?> constructor : schedulerClass.getConstructors()) {
-                Class<?>[] parameterTypes = constructor.getParameterTypes();
-                if (parameterTypes.length == 3
-                        && isCompatibleParameter(parameterTypes[0], events)
-                        && isCompatibleParameter(parameterTypes[1], Integer.valueOf(scenario.getIntervalMs()))
-                        && isCompatibleStringParameter(parameterTypes[2])) {
-                    parameters.put(CONSTRUCTOR_ARG_TYPES, List.of(
-                            typeNameFor(parameterTypes[0]),
-                            typeNameFor(parameterTypes[1]),
-                            typeNameFor(parameterTypes[2])));
-                    parameters.put(CONSTRUCTOR_ARGS, List.of(events, scenario.getIntervalMs(), scenario.getPluginId()));
-                    return;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            throw new InvalidConfigurationException("Class not found: " + className);
+        ConstructorMatch match = findCompatibleConstructorMatch(className, candidates);
+        if (match != null) {
+            parameters.put(CONSTRUCTOR_ARG_TYPES, match.typeNames);
+            parameters.put(CONSTRUCTOR_ARGS, match.arguments);
+            return;
         }
 
         parameters.put(CONSTRUCTOR_ARG_TYPES, List.of("java.util.List", "int"));
@@ -225,59 +215,61 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         ConditionEvaluator<?> evaluator = createEvaluator(scenario, definition.getEvaluators().get(0));
         String eventId = stringOrDefault(definition.getId(), "");
 
-        try {
-            Class<?> eventClass = Class.forName(className);
-            ConstructorMatch match = findCompatibleEventConstructor(eventClass, eventId, collector, evaluator);
-            if (match == null) {
-                return;
-            }
+        List<ConstructorInvocationCandidate> candidates = new ArrayList<>();
+        if (!eventId.isEmpty()) {
+            candidates.add(candidate(eventId, collector, evaluator));
+        }
+        candidates.add(candidate(collector, evaluator));
 
+        ConstructorMatch match = findCompatibleConstructorMatch(className, candidates);
+        if (match != null) {
             parameters.put(CONSTRUCTOR_ARG_TYPES, match.typeNames);
             parameters.put(CONSTRUCTOR_ARGS, match.arguments);
+        }
+    }
+
+    private ConstructorMatch findCompatibleConstructorMatch(String className,
+            List<ConstructorInvocationCandidate> candidates) {
+        try {
+            Class<?> targetClass = Class.forName(className);
+
+            for (ConstructorInvocationCandidate candidate : candidates) {
+                for (Constructor<?> constructor : targetClass.getConstructors()) {
+                    Class<?>[] parameterTypes = constructor.getParameterTypes();
+                    if (parameterTypes.length != candidate.arguments.size()) {
+                        continue;
+                    }
+
+                    boolean compatible = true;
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if (!isCompatibleParameter(parameterTypes[i], candidate.arguments.get(i))) {
+                            compatible = false;
+                            break;
+                        }
+                    }
+                    if (!compatible) {
+                        continue;
+                    }
+
+                    List<String> typeNames = new ArrayList<>();
+                    for (Class<?> parameterType : parameterTypes) {
+                        typeNames.add(typeNameFor(parameterType));
+                    }
+                    return new ConstructorMatch(typeNames, candidate.arguments);
+                }
+            }
+            return null;
         } catch (ClassNotFoundException ex) {
             throw new InvalidConfigurationException("Class not found: " + className);
         }
     }
 
-    private ConstructorMatch findCompatibleEventConstructor(Class<?> eventClass, String eventId,
-            IMetricsCollector<?> collector, ConditionEvaluator<?> evaluator) {
-        if (!eventId.isEmpty()) {
-            for (Constructor<?> constructor : eventClass.getConstructors()) {
-                Class<?>[] parameterTypes = constructor.getParameterTypes();
-                if (parameterTypes.length != 3) {
-                    continue;
-                }
-                if (isCompatibleStringParameter(parameterTypes[0])
-                        && isCompatibleParameter(parameterTypes[1], collector)
-                        && isCompatibleParameter(parameterTypes[2], evaluator)) {
-                    List<String> typeNames = List.of(
-                            typeNameFor(parameterTypes[0]),
-                            typeNameFor(parameterTypes[1]),
-                            typeNameFor(parameterTypes[2]));
-                    return new ConstructorMatch(typeNames, List.of(eventId, collector, evaluator));
-                }
-            }
+    private ConstructorInvocationCandidate candidate(Object... args) {
+        List<Object> values = new ArrayList<>();
+        for (Object arg : args) {
+            values.add(arg);
         }
-
-        for (Constructor<?> constructor : eventClass.getConstructors()) {
-            Class<?>[] parameterTypes = constructor.getParameterTypes();
-            if (parameterTypes.length != 2) {
-                continue;
-            }
-            if (isCompatibleParameter(parameterTypes[0], collector)
-                    && isCompatibleParameter(parameterTypes[1], evaluator)) {
-                List<String> typeNames = List.of(typeNameFor(parameterTypes[0]), typeNameFor(parameterTypes[1]));
-                return new ConstructorMatch(typeNames, List.of(collector, evaluator));
-            }
-        }
-
-        return null;
-    }
-
-    private boolean isCompatibleStringParameter(Class<?> parameterType) {
-        return parameterType == String.class
-                || parameterType.isAssignableFrom(String.class)
-                || "java.lang.String".equals(parameterType.getName());
+        return new ConstructorInvocationCandidate(values);
     }
 
     private boolean isCompatibleParameter(Class<?> parameterType, Object value) {
@@ -710,8 +702,16 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         private final List<Object> arguments;
 
         private ConstructorMatch(List<String> typeNames, List<Object> arguments) {
-            this.typeNames = typeNames;
-            this.arguments = arguments;
+            this.typeNames = List.copyOf(typeNames);
+            this.arguments = List.copyOf(arguments);
+        }
+    }
+
+    private static final class ConstructorInvocationCandidate {
+        private final List<Object> arguments;
+
+        private ConstructorInvocationCandidate(List<Object> arguments) {
+            this.arguments = List.copyOf(arguments);
         }
     }
 }
