@@ -1,4 +1,8 @@
 package tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios;
+/**
+ * 
+ * @author Arléon Zemtsop (Cerberus)
+ */
 
 import java.util.LinkedHashMap;
 import java.util.Map;

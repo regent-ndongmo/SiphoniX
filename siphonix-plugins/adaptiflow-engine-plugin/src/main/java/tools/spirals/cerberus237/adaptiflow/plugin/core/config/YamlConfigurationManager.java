@@ -13,9 +13,18 @@ import org.yaml.snakeyaml.Yaml;
 
 /**
  * YAML-backed configuration manager for scenarios.
+ *
+ * @author Arléon Zemtsop (Cerberus)
  */
 public class YamlConfigurationManager extends ScenarioConfigurationManager implements ConfigurationManager {
 
+    /**
+     * Loads YAML scenario configuration from disk.
+     *
+     * @param path YAML file path
+     * @return parsed configuration; empty model when file does not exist
+     * @throws IOException when file cannot be read
+     */
     @Override
     public AdaptiflowConfiguration load(Path path) throws IOException {
         if (!Files.exists(path)) {
@@ -30,6 +39,13 @@ public class YamlConfigurationManager extends ScenarioConfigurationManager imple
         }
     }
 
+    /**
+     * Saves configuration to disk as YAML.
+     *
+     * @param path destination file path
+     * @param configuration configuration model to persist
+     * @throws IOException when file cannot be written
+     */
     @Override
     public void save(Path path, AdaptiflowConfiguration configuration) throws IOException {
         DumperOptions options = new DumperOptions();

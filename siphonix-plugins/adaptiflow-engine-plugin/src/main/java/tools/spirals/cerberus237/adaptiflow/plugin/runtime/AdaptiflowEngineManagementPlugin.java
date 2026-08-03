@@ -24,6 +24,19 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.config.XmlConfigurationM
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.YamlConfigurationManager;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
 
+/**
+ * Scenario management plugin implementation for AdaptiFlow.
+ * <p>
+ * This plugin stores scenario definitions, materializes per-scenario runtime plugins, and exposes
+ * service/REST/CLI control planes through the {@link ScenarioManagementPlugin} contract.
+ * </p>
+ * <p>
+ * Source-format awareness (YAML/JSON/XML/path) is preserved so updates continue using the most
+ * appropriate configuration manager.
+ * </p>
+ *
+ * @author Arléon Zemtsop (Cerberus)
+ */
 public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugin {
 
     private static final String YAML_FILE_SOURCE_TYPE = "yaml-file";
@@ -46,21 +59,35 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
     private PluginState state = PluginState.CREATED;
     private PluginContext pluginContext;
 
+    /**
+     * @return unique plugin id for scenario management runtime
+     */
     @Override
     public synchronized String getId() {
         return "adaptiflow.engine";
     }
 
+    /**
+     * @return implementation version
+     */
     @Override
     public synchronized String getVersion() {
         return "1.0.0";
     }
 
+    /**
+     * @return current plugin lifecycle state
+     */
     @Override
     public synchronized PluginState getState() {
         return state;
     }
 
+    /**
+     * Initializes all already-registered scenarios and prepares runtime materialization.
+     *
+     * @param context plugin context
+     */
     @Override
     public synchronized void initialize(PluginContext context) {
         pluginContext = context;
@@ -70,6 +97,9 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         state = PluginState.INITIALIZED;
     }
 
+    /**
+     * Starts every materialized scenario runtime plugin.
+     */
     @Override
     public synchronized void start() {
         for (ScenarioPlugin plugin : runtimePlugins.values()) {
@@ -80,6 +110,9 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         state = PluginState.RUNNING;
     }
 
+    /**
+     * Stops every materialized scenario runtime plugin.
+     */
     @Override
     public synchronized void stop() {
         for (ScenarioPlugin plugin : runtimePlugins.values()) {
@@ -103,10 +136,23 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         return cli;
     }
 
+    /**
+     * Inserts or updates scenarios from one configuration payload.
+     *
+     * @param configuration parsed configuration payload
+     * @param failOnDuplicate whether duplicates should be rejected
+     */
     private synchronized void upsertScenarios(AdaptiflowConfiguration configuration, boolean failOnDuplicate) {
         upsertScenarios(configuration, failOnDuplicate, YAML_FILE_SOURCE_TYPE);
     }
 
+    /**
+     * Inserts or updates scenarios from one configuration payload while preserving source type.
+     *
+     * @param configuration parsed configuration payload
+     * @param failOnDuplicate whether duplicates should be rejected
+     * @param sourceType source type tag used to choose runtime wrapper and manager
+     */
     private synchronized void upsertScenarios(AdaptiflowConfiguration configuration, boolean failOnDuplicate,
             String sourceType) {
         for (Map.Entry<String, ScenarioDefinition> entry : configuration.getScenarios().entrySet()) {
@@ -122,6 +168,11 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         }
     }
 
+    /**
+     * Rebuilds one scenario runtime plugin according to its latest definition and source type.
+     *
+     * @param scenario scenario definition to materialize
+     */
     private void ensureMaterialized(ScenarioDefinition scenario) {
         String scenarioId = scenario.getId();
 
@@ -154,6 +205,13 @@ public class AdaptiflowEngineManagementPlugin implements ScenarioManagementPlugi
         runtimePlugins.put(scenarioId, plugin);
     }
 
+    /**
+     * Loads configuration using source metadata and available managers.
+     *
+     * @param source scenario source payload
+     * @return parsed configuration
+     * @throws IOException when source cannot be read
+     */
     private synchronized AdaptiflowConfiguration loadConfiguration(ScenarioSource source) throws IOException {
         if (isFileSource(source) && source.getReference() != null) {
             Path sourcePath = Path.of(source.getReference());

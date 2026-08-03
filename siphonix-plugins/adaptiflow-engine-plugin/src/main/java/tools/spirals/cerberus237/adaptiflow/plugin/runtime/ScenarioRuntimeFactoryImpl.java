@@ -27,6 +27,16 @@ import tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers.EventSubsc
 import tools.spirals.cerberus237.metricscollectorbase.IMetricsCollector;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
 
+/**
+ * Reflection-driven runtime factory for AdaptiFlow scenario components.
+ * <p>
+ * This implementation resolves short component names, supports constructor/factory metadata, and
+ * performs adaptive constructor matching to instantiate events, collectors, evaluators,
+ * subscribers, actions, and schedulers from declarative configuration.
+ * </p>
+ *
+ * @author Arléon Zemtsop (Cerberus)
+ */
 public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
 
     private static final String CONSTRUCTOR_ARG_TYPES = "constructorArgTypes";
@@ -62,6 +72,14 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         private static final List<String> SUBSCRIBER_PACKAGES = List.of(
             "tools.spirals.cerberus237.adaptiflow.subscriptions.subscribers");
 
+    /**
+     * Builds one event instance and attaches all configured subscribers.
+     *
+     * @param scenario owning scenario
+     * @param eventDefinition event definition to build
+     * @param context plugin context
+     * @return materialized event
+     */
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public Event buildEvent(ScenarioDefinition scenario, EventDefinition eventDefinition, PluginContext context) {
@@ -72,6 +90,13 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         return event;
     }
 
+    /**
+     * Creates one scheduler instance for the provided events.
+     *
+     * @param scenario owning scenario
+     * @param events materialized event list
+     * @return scheduler instance
+     */
     @Override
     public Object createScheduler(ScenarioDefinition scenario, List<Event> events) {
         ObservationSchedulerDefinition schedulerDefinition = scenario.getScheduler();
@@ -91,6 +116,14 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         return createComponent(className, parameters, Object.class, scenario.getId());
     }
 
+    /**
+     * Finds constructor metadata for scheduler creation when explicit metadata is absent.
+     *
+     * @param className scheduler class name
+     * @param scenario owning scenario
+     * @param events materialized event list
+     * @param parameters mutable scheduler parameters map
+     */
     private void populateSchedulerConstructorMetadata(String className, ScenarioDefinition scenario, List<Event> events,
             Map<String, Object> parameters) {
         List<ConstructorInvocationCandidate> candidates = List.of(
@@ -228,6 +261,13 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         }
     }
 
+    /**
+     * Finds a compatible public constructor against one or more argument candidates.
+     *
+     * @param className target class name
+     * @param candidates argument candidates ordered by preference
+     * @return matching constructor metadata, or {@code null} when no match is found
+     */
     private ConstructorMatch findCompatibleConstructorMatch(String className,
             List<ConstructorInvocationCandidate> candidates) {
         try {
@@ -331,6 +371,16 @@ public class ScenarioRuntimeFactoryImpl implements ScenarioRuntimeFactory {
         return type.getName();
     }
 
+    /**
+     * Creates and type-checks one runtime component instance.
+     *
+     * @param className component class name
+     * @param parameters constructor/factory/setter parameters
+     * @param expectedType expected runtime interface
+     * @param scenarioId scenario id used in diagnostics
+     * @param <T> expected runtime type
+     * @return typed runtime component
+     */
     private <T> T createComponent(String className, Map<String, Object> parameters, Class<T> expectedType,
             String scenarioId) {
         try {

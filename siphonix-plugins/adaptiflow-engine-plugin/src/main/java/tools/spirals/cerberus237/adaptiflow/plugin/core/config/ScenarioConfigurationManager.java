@@ -16,15 +16,33 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.SubscriberDefi
 /**
  * Shared map-to-domain mapping for scenario configuration regardless of source
  * format (YAML, JSON, XML).
+ * <p>
+ * This class centralizes parsing, serialization, and semantic validation rules to ensure behavior
+ * consistency across all configuration source formats.
+ * </p>
+ *
+ * @author Arléon Zemtsop (Cerberus)
  */
 public class ScenarioConfigurationManager {
 
     private static final String DEFAULT_EVENT_TYPE = "ConditionalEvent";
 
+    /**
+     * Loads configuration from a generic map representation.
+     *
+     * @param root raw root map
+     * @return validated configuration model
+     */
     public AdaptiflowConfiguration loadFromMap(Map<String, Object> root) {
         return fromMap(root == null ? new LinkedHashMap<>() : root);
     }
 
+    /**
+     * Maps root map structure to configuration model.
+     *
+     * @param root root map
+     * @return configuration model
+     */
     protected AdaptiflowConfiguration fromMap(Map<String, Object> root) {
         AdaptiflowConfiguration configuration = new AdaptiflowConfiguration();
 
@@ -44,6 +62,13 @@ public class ScenarioConfigurationManager {
         return configuration;
     }
 
+    /**
+     * Maps one raw scenario entry to a strongly-typed definition and validates it.
+     *
+     * @param scenarioId scenario identifier from map key
+     * @param scenarioMap raw scenario map
+     * @return mapped scenario definition
+     */
     protected ScenarioDefinition mapToScenario(String scenarioId, Map<String, Object> scenarioMap) {
         ScenarioDefinition scenario = new ScenarioDefinition();
         scenario.setId(scenarioId);
@@ -58,6 +83,12 @@ public class ScenarioConfigurationManager {
         return scenario;
     }
 
+    /**
+     * Maps optional scheduler section.
+     *
+     * @param scenarioMap raw scenario map
+     * @return mapped scheduler definition or {@code null} when not defined
+     */
     protected ObservationSchedulerDefinition mapScheduler(Map<String, Object> scenarioMap) {
         Object rawScheduler = scenarioMap.get("scheduler");
         if (rawScheduler == null) {
@@ -76,6 +107,13 @@ public class ScenarioConfigurationManager {
         return scheduler;
     }
 
+    /**
+     * Maps scenario event list.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param scenarioMap raw scenario map
+     * @return mapped event definitions
+     */
     protected List<EventDefinition> mapEvents(String scenarioId, Map<String, Object> scenarioMap) {
         Object rawEvents = scenarioMap.get("events");
         if (!(rawEvents instanceof List)) {
@@ -97,6 +135,13 @@ public class ScenarioConfigurationManager {
         return events;
     }
 
+    /**
+     * Maps one event entry, including collector/evaluator/subscriber blocks.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param eventMap raw event map
+     * @return mapped event definition
+     */
     protected EventDefinition mapEvent(String scenarioId, Map<String, Object> eventMap) {
         EventDefinition event = new EventDefinition();
         event.setId(stringValue(eventMap.get("id")));
@@ -108,6 +153,13 @@ public class ScenarioConfigurationManager {
         return event;
     }
 
+    /**
+     * Maps conditional-event collector block.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param eventMap raw event map
+     * @return mapped collector definition or {@code null} for non-conditional events
+     */
     protected MetricCollectorDefinition mapCollector(String scenarioId, Map<String, Object> eventMap) {
         if (!requiresConditionalArtifacts(eventMap)) {
             return null;
@@ -126,6 +178,13 @@ public class ScenarioConfigurationManager {
         return collector;
     }
 
+    /**
+     * Maps conditional evaluator definitions for one event.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param eventMap raw event map
+     * @return mapped evaluator definitions
+     */
     protected List<ConditionalEvaluatorDefinition> mapEvaluators(String scenarioId, Map<String, Object> eventMap) {
         if (!requiresConditionalArtifacts(eventMap)) {
             return new ArrayList<>();
@@ -154,6 +213,14 @@ public class ScenarioConfigurationManager {
         return evaluators;
     }
 
+    /**
+     * Maps subscriber actions declared under one subscriber.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param eventId event id used for diagnostics
+     * @param ownerMap subscriber raw map
+     * @return mapped action definitions
+     */
     protected List<ActionDefinition> mapActions(String scenarioId, String eventId, Map<String, Object> ownerMap) {
         Object rawActions = ownerMap.get("actions");
         if (rawActions == null) {
@@ -183,6 +250,13 @@ public class ScenarioConfigurationManager {
         return actions;
     }
 
+    /**
+     * Maps event subscribers and their optional actions.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param eventMap raw event map
+     * @return mapped subscriber definitions
+     */
     protected List<SubscriberDefinition> mapSubscribers(String scenarioId, Map<String, Object> eventMap) {
         String eventId = stringValue(eventMap.get("id"));
         Object rawSubscribers = eventMap.get("subscribers");
@@ -213,6 +287,12 @@ public class ScenarioConfigurationManager {
         return subscribers;
     }
 
+    /**
+     * Serializes configuration model into a generic map representation.
+     *
+     * @param configuration configuration model
+     * @return generic map representation suitable for YAML/JSON persistence
+     */
     protected Map<String, Object> toMap(AdaptiflowConfiguration configuration) {
         Map<String, Object> root = new LinkedHashMap<>();
         Map<String, Object> rawScenarios = new LinkedHashMap<>();
@@ -239,6 +319,11 @@ public class ScenarioConfigurationManager {
         return root;
     }
 
+    /**
+     * Validates one mapped scenario definition.
+     *
+     * @param scenario scenario definition to validate
+     */
     protected void validateScenario(ScenarioDefinition scenario) {
         if (scenario.getPluginId() == null || scenario.getPluginId().trim().isEmpty()) {
             throw new InvalidConfigurationException(
@@ -262,6 +347,12 @@ public class ScenarioConfigurationManager {
         }
     }
 
+    /**
+     * Validates one event definition in a scenario context.
+     *
+     * @param scenarioId scenario id used for diagnostics
+     * @param event event definition to validate
+     */
     protected void validateEvent(String scenarioId, EventDefinition event) {
         if (event.getId() == null || event.getId().trim().isEmpty()) {
             throw new InvalidConfigurationException(
@@ -306,6 +397,12 @@ public class ScenarioConfigurationManager {
         }
     }
 
+    /**
+     * Serializes event definitions into generic map entries.
+     *
+     * @param events event definitions
+     * @return list of serialized event maps
+     */
     protected List<Map<String, Object>> toEventMapList(List<EventDefinition> events) {
         List<Map<String, Object>> rawEvents = new ArrayList<>();
         for (EventDefinition event : events) {
@@ -364,11 +461,23 @@ public class ScenarioConfigurationManager {
         return rawEvents;
     }
 
+    /**
+     * Indicates whether a collector/evaluator block is required for an event definition.
+     *
+     * @param eventMap raw event map
+     * @return {@code true} when event is conditional and requires conditional artifacts
+     */
     protected boolean requiresConditionalArtifacts(Map<String, Object> eventMap) {
         String type = stringValue(eventMap.get("type"));
         return isConditionalEventType(type);
     }
 
+    /**
+     * Determines whether an event type is treated as a conditional event.
+     *
+     * @param type event type name
+     * @return {@code true} for conditional event representations
+     */
     protected boolean isConditionalEventType(String type) {
         if (type == null || type.trim().isEmpty()) {
             return true;
@@ -378,6 +487,12 @@ public class ScenarioConfigurationManager {
                 || "tools.spirals.cerberus237.adaptiflow.events.ConditionalEvent".equals(trimmed);
     }
 
+    /**
+     * Converts a raw value to a map representation.
+     *
+     * @param value raw value
+     * @return raw map value or empty map when null
+     */
     protected Map<String, Object> mapValue(Object value) {
         if (value == null) {
             return new LinkedHashMap<>();
@@ -390,10 +505,23 @@ public class ScenarioConfigurationManager {
         return rawMap;
     }
 
+    /**
+     * Converts a value to string.
+     *
+     * @param value raw value
+     * @return string representation or null
+     */
     protected String stringValue(Object value) {
         return value == null ? null : String.valueOf(value);
     }
 
+    /**
+     * Converts a value to boolean with fallback default.
+     *
+     * @param value raw value
+     * @param defaultValue fallback value
+     * @return parsed boolean value
+     */
     protected boolean booleanValue(Object value, boolean defaultValue) {
         if (value == null) {
             return defaultValue;
@@ -401,6 +529,13 @@ public class ScenarioConfigurationManager {
         return Boolean.parseBoolean(String.valueOf(value));
     }
 
+    /**
+     * Converts a value to integer with fallback default.
+     *
+     * @param value raw value
+     * @param defaultValue fallback value
+     * @return parsed integer value
+     */
     protected int intValue(Object value, int defaultValue) {
         if (value == null) {
             return defaultValue;

@@ -19,11 +19,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ * Utility parser that converts XML scenario documents into the shared map representation used by
+ * {@link ScenarioConfigurationManager}.
+ * <p>
+ * Parsing is done through a hardened XML parser configuration to mitigate XXE and external entity
+ * attacks.
+ * </p>
+ *
+ * @author Arléon Zemtsop (Cerberus)
+ */
 public final class XmlScenarioMapParser {
 
     private XmlScenarioMapParser() {
     }
 
+    /**
+     * Parses one XML scenario document into the generic root map structure.
+     *
+     * @param path XML source file
+     * @return root map with a {@code scenarios} section
+     * @throws IOException when parser creation or document parsing fails
+     */
     public static Map<String, Object> parse(Path path) throws IOException {
         if (!Files.exists(path)) {
             return new LinkedHashMap<>();
@@ -91,6 +108,12 @@ public final class XmlScenarioMapParser {
         return rootMap;
     }
 
+    /**
+     * Parses one {@code <event>} element into a raw map entry.
+     *
+     * @param eventElement event element
+     * @return raw event map
+     */
     private static Map<String, Object> parseEvent(Element eventElement) {
         Map<String, Object> eventMap = new LinkedHashMap<>();
         putIfPresent(eventMap, "id", eventElement.getAttribute("id"));
@@ -149,6 +172,12 @@ public final class XmlScenarioMapParser {
         return eventMap;
     }
 
+    /**
+     * Parses a nested {@code <parameters>} section from an owner element.
+     *
+     * @param ownerElement XML element owning a parameters block
+     * @return mapped parameters
+     */
     private static Map<String, Object> parseParameters(Element ownerElement) {
         Map<String, Object> parameters = new LinkedHashMap<>();
         Element parametersElement = firstChildByTag(ownerElement, "parameters");
@@ -174,6 +203,12 @@ public final class XmlScenarioMapParser {
         return parameters;
     }
 
+    /**
+     * Parses a complex parameter value represented as list/map/text.
+     *
+     * @param parameterElement parameter element
+     * @return parsed value object
+     */
     private static Object parseComplexValue(Element parameterElement) {
         Element listElement = firstChildByTag(parameterElement, "list");
         if (listElement != null) {
@@ -192,6 +227,12 @@ public final class XmlScenarioMapParser {
         return parseScalar(text.trim());
     }
 
+    /**
+     * Parses XML list nodes into list objects.
+     *
+     * @param listElement list element
+     * @return parsed list
+     */
     private static List<Object> parseList(Element listElement) {
         List<Object> values = new ArrayList<>();
         for (Element valueElement : directChildren(listElement)) {
@@ -206,6 +247,12 @@ public final class XmlScenarioMapParser {
         return values;
     }
 
+    /**
+     * Parses XML map nodes into map objects.
+     *
+     * @param mapElement map element
+     * @return parsed map
+     */
     private static Map<String, Object> parseMap(Element mapElement) {
         Map<String, Object> values = new LinkedHashMap<>();
         for (Element entryElement : childrenByTag(mapElement, "entry")) {
@@ -224,6 +271,12 @@ public final class XmlScenarioMapParser {
         return values;
     }
 
+    /**
+     * Parses a scalar value with primitive coercion for booleans and numbers.
+     *
+     * @param raw raw textual value
+     * @return scalar as boolean, integer, double, or string
+     */
     private static Object parseScalar(String raw) {
         String value = raw == null ? "" : raw.trim();
         if (value.isEmpty()) {
@@ -246,6 +299,12 @@ public final class XmlScenarioMapParser {
         }
     }
 
+    /**
+     * Creates a secure XML document builder factory.
+     *
+     * @return hardened document builder factory
+     * @throws IOException when secure parser features cannot be configured
+     */
     private static DocumentBuilderFactory newSecureFactory() throws IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         try {
