@@ -20,6 +20,7 @@
     <adaptiflow.version>1.0.2</adaptiflow.version>
     <metricscollectorbase.version>1.0.1</metricscollectorbase.version>
     <adaptationactionsbase.version>1.0.2</adaptationactionsbase.version>
+    <snakeyaml.version>2.2</snakeyaml.version>
   </properties>
 
   <dependencyManagement>
@@ -43,6 +44,11 @@
         <groupId>io.github.brice10</groupId>
         <artifactId>adaptationactionsbase</artifactId>
         <version>${adaptationactionsbase.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
