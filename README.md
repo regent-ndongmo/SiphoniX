@@ -4,6 +4,29 @@ SiphoniX is a modular autonomic management runtime for microservice adaptation.
 
 This repository now includes a folder-driven plugin runtime with configurable discovery behavior, plugin lifecycle commands, and scenario-source loading delegated to plugins.
 
+## Project Modules
+
+The Maven build now uses a parent reactor with focused modules:
+1. `siphonix-api`: plugin contracts and management interfaces.
+2. `siphonix-kernel`: runtime kernel, loading, and registry implementation.
+3. `siphonix`: runtime entrypoint and packaging (module path: `siphonix-runtime`).
+4. `siphonix-plugins`: aggregator for official plugins.
+5. `adaptiflow-engine-plugin`: AdaptiFlow runtime plugin implementation.
+
+## Build and Test
+
+Build all modules:
+
+```bash
+mvn clean verify
+```
+
+Run focused plugin regression suite:
+
+```bash
+mvn -DskipITs -Dtest=YamlScenarioPluginTest test
+```
+
 ## Current Runtime State
 
 ### Startup and Plugin Discovery
