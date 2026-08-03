@@ -27,7 +27,7 @@
   <dependencies>
     <dependency>
       <groupId>io.github.brice10</groupId>
-      <artifactId>siphonix</artifactId>
+      <artifactId>siphonix-kernel</artifactId>
       <version>1.0.0</version>
     </dependency>
     <dependency>
