@@ -9,21 +9,21 @@ if [[ ! -f "./scenarios/${SCENARIO_FILE}.yml" ]]; then
   exit 1
 fi
 
-if ls ../../target/*-jar-with-dependencies.jar >/dev/null 2>&1; then
-  cp ../../target/*-jar-with-dependencies.jar ./siphonix-app.jar
+if ls ../../siphonix-runtime/target/*-jar-with-dependencies.jar >/dev/null 2>&1; then
+  cp ../../siphonix-runtime/target/*-jar-with-dependencies.jar ./siphonix-app.jar
 else
-  echo "Missing fat jar. Run 'mvn clean package' at repository root first."
+  echo "Missing runtime fat jar. Run 'mvn clean package' at repository root first."
   exit 1
 fi
 
-if ls ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar >/dev/null 2>&1; then
+if ls ../../siphonix-plugins/adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar >/dev/null 2>&1; then
   mkdir -p ./plugins
-  cp ../../adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar ./plugins/adaptiflow-engine-plugin.jar
+  cp ../../siphonix-plugins/adaptiflow-engine-plugin/target/*-jar-with-dependencies.jar ./plugins/adaptiflow-engine-plugin.jar
 else
-  echo "Missing AdaptiFlow plugin jar. Run 'cd adaptiflow-engine-plugin && mvn clean package' first."
+  echo "Missing AdaptiFlow plugin jar. Run 'mvn clean package' at repository root first."
   exit 1
 fi
 
-SCENARIO_FILE="${SCENARIO_FILE}" docker compose -f docker-compose.yml -p siphonix-adaptiflow-yml up -d --build
+SCENARIO_FILE="${SCENARIO_FILE}" docker compose -f docker-compose.yml -p siphonix-adaptiflow up -d --build
 
 echo "Started sample with scenario: ${SCENARIO_FILE}"

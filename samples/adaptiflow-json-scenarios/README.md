@@ -9,16 +9,16 @@ Plugins are loaded from `/opt/siphonix/plugins` inside the container (mapped fro
 ## Prerequisites
 
 - Docker + Docker Compose
-- Build the SiphoniX fat jar first:
+- Build the SiphoniX reactor first. The runtime fat jar is produced in `siphonix-runtime/target`:
 
 ```bash
 mvn clean package
 ```
 
-- Build the AdaptiFlow plugin artifact:
+- Build the AdaptiFlow plugin artifact if you want to package only that module:
 
 ```bash
-cd adaptiflow-engine-plugin
+cd siphonix-plugins/adaptiflow-engine-plugin
 mvn clean package
 cd ..
 ```
