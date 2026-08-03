@@ -24,6 +24,6 @@ else
   exit 1
 fi
 
-SCENARIO_FILE="${SCENARIO_FILE}" docker compose -f docker-compose.yml -p siphonix-adaptiflow up -d --build
+SCENARIO_FILE="${SCENARIO_FILE}" docker compose -f docker-compose.yml -p siphonix-adaptiflow-yml up -d --build
 
 echo "Started sample with scenario: ${SCENARIO_FILE}"
