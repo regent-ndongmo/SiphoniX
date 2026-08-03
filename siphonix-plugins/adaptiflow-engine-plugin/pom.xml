@@ -10,9 +10,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <groupId>io.github.brice10</groupId>
   <artifactId>adaptiflow-engine-plugin</artifactId>
-  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <name>AdaptiFlow Engine Plugin</name>
@@ -26,17 +24,14 @@
     <dependency>
       <groupId>io.github.brice10</groupId>
       <artifactId>adaptiflow</artifactId>
-      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.github.brice10</groupId>
       <artifactId>metricscollectorbase</artifactId>
-      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>io.github.brice10</groupId>
       <artifactId>adaptationactionsbase</artifactId>
-      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>

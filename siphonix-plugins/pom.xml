@@ -16,6 +16,37 @@
   <name>SiphoniX Plugins</name>
   <description>Aggregator module for official SiphoniX runtime plugins</description>
 
+  <properties>
+    <adaptiflow.version>1.0.2</adaptiflow.version>
+    <metricscollectorbase.version>1.0.1</metricscollectorbase.version>
+    <adaptationactionsbase.version>1.0.2</adaptationactionsbase.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>siphonix-kernel</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.brice10</groupId>
+        <artifactId>adaptiflow</artifactId>
+        <version>${adaptiflow.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.brice10</groupId>
+        <artifactId>metricscollectorbase</artifactId>
+        <version>${metricscollectorbase.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.brice10</groupId>
+        <artifactId>adaptationactionsbase</artifactId>
+        <version>${adaptationactionsbase.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <modules>
     <module>./adaptiflow-engine-plugin</module>
   </modules>
