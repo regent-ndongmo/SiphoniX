@@ -9,6 +9,7 @@ import java.util.Set;
 
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginRegistryView;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 
 /**
@@ -20,7 +21,7 @@ import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
  *
  * @author Arléon Zemtsop (Cerberus)
  */
-public class PluginRegistry {
+public class PluginRegistry implements PluginRegistryView {
 
     private final Map<String, Plugin> plugins = new LinkedHashMap<>();
 

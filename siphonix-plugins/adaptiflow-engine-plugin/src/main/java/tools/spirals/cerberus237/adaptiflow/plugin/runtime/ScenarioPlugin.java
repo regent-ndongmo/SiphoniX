@@ -8,8 +8,8 @@ import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.EventDefinitio
 import tools.spirals.cerberus237.adaptiflow.plugin.core.scenarios.ScenarioDefinition;
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginContext;
+import tools.spirals.cerberus237.siphonix.api.plugin.ManagedSchedulerHandle;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
-import tools.spirals.cerberus237.siphonix.kernel.ManagedSchedulerHandle;
 
 public class ScenarioPlugin implements Plugin {
 

@@ -9,9 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tools.spirals.cerberus237.siphonix.api.plugin.Plugin;
+import tools.spirals.cerberus237.siphonix.api.plugin.PluginRegistryView;
 import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
 import tools.spirals.cerberus237.adaptiflow.plugin.core.config.AdaptiflowConfiguration;
-import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
 
 /**
  * Applies scenario definitions onto registered plugins.
@@ -20,9 +20,9 @@ public class ScenarioOrchestrator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScenarioOrchestrator.class);
 
-    private final PluginRegistry pluginRegistry;
+    private final PluginRegistryView pluginRegistry;
 
-    public ScenarioOrchestrator(PluginRegistry pluginRegistry) {
+    public ScenarioOrchestrator(PluginRegistryView pluginRegistry) {
         this.pluginRegistry = pluginRegistry;
     }
 

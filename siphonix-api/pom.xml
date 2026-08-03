@@ -15,4 +15,11 @@
 
   <name>SiphoniX API</name>
   <description>Public API contracts for SiphoniX modules and plugins</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+  </dependencies>
 </project>
