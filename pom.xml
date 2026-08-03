@@ -43,6 +43,7 @@
 	<modules>
 		<module>siphonix-api</module>
 		<module>siphonix-kernel</module>
+		<module>siphonix-app</module>
 		<module>siphonix-runtime</module>
 		<module>siphonix-plugins</module>
 	</modules>
@@ -52,6 +53,11 @@
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>siphonix-api</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>siphonix-app</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
