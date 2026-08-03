@@ -1,0 +1,13 @@
+services:
+  image:
+    command: >
+      sh -c "java -agentlib:jdwp=transport=dt_socket,server=y,suspend=${SIPHONIX_DEBUG_SUSPEND:-n},address=*:${SIPHONIX_DEBUG_PORT:-5006} -jar /usr/local/tomcat/bin/siphonix.jar &
+      /usr/local/tomcat/bin/start.sh &&
+      JPDA_ADDRESS=*:${DEBUG_PORT:-5005}
+      JPDA_TRANSPORT=dt_socket
+      JPDA_SUSPEND=${DEBUG_SUSPEND:-n}
+      /usr/local/tomcat/bin/catalina.sh jpda run"
+    ports:
+      - "8081:8080"
+      - "${DEBUG_PORT:-5005}:${DEBUG_PORT:-5005}"
+      - "${SIPHONIX_DEBUG_PORT:-5006}:${SIPHONIX_DEBUG_PORT:-5006}"

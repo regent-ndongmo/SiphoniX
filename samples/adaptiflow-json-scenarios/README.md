@@ -37,6 +37,19 @@ Or explicitly:
 ./run.sh benin-traffic
 ```
 
+## Debug Run
+
+```bash
+chmod +x run.debug.sh
+./run.debug.sh
+```
+
+Custom debug options:
+
+```bash
+DEBUG_PORT=5005 DEBUG_SUSPEND=n SIPHONIX_DEBUG_PORT=5006 SIPHONIX_DEBUG_SUSPEND=n ./run.debug.sh cache-size
+```
+
 ## Run Other Scenarios
 
 ```bash
