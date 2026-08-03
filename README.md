@@ -9,10 +9,9 @@ This repository now includes a folder-driven plugin runtime with configurable di
 The Maven build now uses a parent reactor with focused modules:
 1. `siphonix-api`: plugin contracts and management interfaces.
 2. `siphonix-kernel`: runtime kernel, loading, and registry implementation.
-3. `siphonix-app`: bootstrap application and command entrypoint.
-4. `siphonix`: thin runtime packaging module (module path: `siphonix-runtime`).
-5. `siphonix-plugins`: aggregator for official plugins.
-6. `siphonix-plugins/adaptiflow-engine-plugin`: AdaptiFlow runtime plugin implementation.
+3. `siphonix`: runtime entrypoint and packaging (module path: `siphonix-runtime`).
+4. `siphonix-plugins`: aggregator for official plugins.
+5. `siphonix-plugins/adaptiflow-engine-plugin`: AdaptiFlow runtime plugin implementation.
 
 ## Build and Test
 
