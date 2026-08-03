@@ -7,7 +7,7 @@
     <groupId>io.github.brice10</groupId>
     <artifactId>siphonix-plugins</artifactId>
     <version>1.0.0</version>
-    <relativePath>../siphonix-plugins/pom.xml</relativePath>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>io.github.brice10</groupId>

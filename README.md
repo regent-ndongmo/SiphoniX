@@ -11,7 +11,7 @@ The Maven build now uses a parent reactor with focused modules:
 2. `siphonix-kernel`: runtime kernel, loading, and registry implementation.
 3. `siphonix`: runtime entrypoint and packaging (module path: `siphonix-runtime`).
 4. `siphonix-plugins`: aggregator for official plugins.
-5. `adaptiflow-engine-plugin`: AdaptiFlow runtime plugin implementation.
+5. `siphonix-plugins/adaptiflow-engine-plugin`: AdaptiFlow runtime plugin implementation.
 
 ## Build and Test
 

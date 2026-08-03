@@ -1,6 +1,6 @@
 /bin/
 /target/
-/adaptiflow-engine-plugin/target/
+/siphonix-plugins/adaptiflow-engine-plugin/target/
 /siphonix-api/target/
 /siphonix-kernel/target/
 /siphonix-runtime/target/
