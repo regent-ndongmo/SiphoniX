@@ -36,6 +36,13 @@ import tools.spirals.cerberus237.siphonix.kernel.PluginRegistry;
  *
  * <p>In manual watch mode, changed artifacts are tracked as pending until explicitly loaded.
  *
+ * <p>This loader coordinates three runtime states:
+ * <ul>
+ * <li><b>registered-only</b>: plugins are registered but not initialized before runtime init.</li>
+ * <li><b>initialized</b>: plugins are initialized once runtime context becomes available.</li>
+ * <li><b>started</b>: plugins are started when runtime enters active execution state.</li>
+ * </ul>
+ *
  * @author Arléon Zemtsop (Cerberus)
  */
 public class PluginRuntimeLoader implements AutoCloseable {
@@ -65,6 +72,15 @@ public class PluginRuntimeLoader implements AutoCloseable {
     private boolean runtimeStarted;
     private boolean watchEnabled;
 
+    /**
+     * Creates a runtime loader bound to one plugin directory and discovery mode.
+     *
+     * @param pluginRegistry registry where loaded plugins are stored and lifecycle-managed
+     * @param pluginContext context injected into plugins during initialization
+     * @param pluginDirectory directory containing plugin JAR artifacts
+     * @param discoveryMode discovery/watch behavior policy
+     * @param configPath optional scenario config path to auto-apply for compatible plugins
+     */
     public PluginRuntimeLoader(PluginRegistry pluginRegistry, PluginContext pluginContext, Path pluginDirectory,
             PluginDiscoveryMode discoveryMode, String configPath) {
         this.pluginRegistry = pluginRegistry;
@@ -77,6 +93,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
 
     /**
      * Performs startup plugin scan and activation according to configured mode.
+     * <p>
+     * In manual watch mode, startup still performs activation for discovered artifacts.
+     * </p>
      */
     public synchronized void loadStartupPlugins() {
         scanAndApply(true);
@@ -84,6 +103,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
 
     /**
      * Marks runtime as started.
+     * <p>
+     * Subsequent dynamically loaded plugins are initialized and immediately started.
+     * </p>
      */
     public synchronized void onRuntimeStarted() {
         runtimeInitialized = true;
@@ -91,7 +113,10 @@ public class PluginRuntimeLoader implements AutoCloseable {
     }
 
     /**
-     * Marks runtime as initialized.
+        * Marks runtime as initialized.
+        * <p>
+        * Subsequent dynamically loaded plugins are initialized on registration.
+        * </p>
      */
     public synchronized void onRuntimeInitialized() {
         runtimeInitialized = true;
@@ -99,6 +124,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
 
     /**
      * Starts periodic watch loop for plugin directory.
+        * <p>
+        * Calling this method multiple times is safe and does not create duplicate schedulers.
+        * </p>
      */
     public synchronized void startWatcher() {
         if (discoveryMode == PluginDiscoveryMode.STARTUP_ONLY) {
@@ -132,6 +160,9 @@ public class PluginRuntimeLoader implements AutoCloseable {
 
     /**
      * Stops periodic watch loop if running.
+        * <p>
+        * This method is idempotent.
+        * </p>
      */
     public synchronized void stopWatcher() {
         if (watcher == null) {
@@ -152,6 +183,7 @@ public class PluginRuntimeLoader implements AutoCloseable {
      * Enables or disables watch behavior.
      *
      * @param enabled desired watch state.
+        * @throws IllegalStateException when enabling watch in startup-only mode
      */
     public synchronized void setWatchEnabled(boolean enabled) {
         if (discoveryMode == PluginDiscoveryMode.STARTUP_ONLY && enabled) {
@@ -190,6 +222,7 @@ public class PluginRuntimeLoader implements AutoCloseable {
      *
      * @param artifactPath artifact path.
      * @return loaded plugin instance.
+     * @throws IllegalStateException when artifact loading or activation fails
      */
     public synchronized Plugin loadPlugin(Path artifactPath) {
         return loadAndActivate(artifactPath);
@@ -199,6 +232,7 @@ public class PluginRuntimeLoader implements AutoCloseable {
      * Unloads a plugin by id.
      *
      * @param pluginId plugin identifier.
+    * @throws IllegalArgumentException when plugin id is unknown
      */
     public synchronized void unloadPlugin(String pluginId) {
         ActivePlugin activePlugin = activePlugins.remove(pluginId);
@@ -216,6 +250,7 @@ public class PluginRuntimeLoader implements AutoCloseable {
      * Reloads a plugin from its known artifact path.
      *
      * @param pluginId plugin identifier.
+    * @throws IllegalArgumentException when plugin id is unknown
      */
     public synchronized void reloadPlugin(String pluginId) {
         ActivePlugin activePlugin = activePlugins.get(pluginId);

@@ -12,8 +12,17 @@ package tools.spirals.cerberus237.siphonix.kernel.loading;
  * @author Arléon Zemtsop (Cerberus)
  */
 public enum PluginDiscoveryMode {
+    /**
+     * Load plugins once at startup and disable any directory watch activity.
+     */
     STARTUP_ONLY("startup-only"),
+    /**
+     * Watch plugin directory and automatically activate added or updated artifacts.
+     */
     WATCH_AUTO("watch-auto"),
+    /**
+     * Watch plugin directory but keep changed artifacts in pending state for manual activation.
+     */
     WATCH_MANUAL("watch-manual");
 
     private final String value;
@@ -22,6 +31,11 @@ public enum PluginDiscoveryMode {
         this.value = value;
     }
 
+    /**
+     * Returns the serialized value used by configuration and CLI options.
+     *
+     * @return external textual representation of this mode
+     */
     public String getValue() {
         return value;
     }
@@ -31,6 +45,7 @@ public enum PluginDiscoveryMode {
      *
      * @param rawValue raw mode value.
      * @return parsed mode, defaulting to startup-only for blank input.
+    * @throws IllegalArgumentException when the value does not match any supported mode
      */
     public static PluginDiscoveryMode fromValue(String rawValue) {
         if (rawValue == null || rawValue.trim().isEmpty()) {

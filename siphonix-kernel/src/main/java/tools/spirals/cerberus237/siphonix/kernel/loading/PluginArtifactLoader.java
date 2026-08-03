@@ -26,6 +26,7 @@ public class PluginArtifactLoader {
      *
      * @param artifactPath plugin artifact path.
      * @return loaded handle for a {@link ScenarioManagementPlugin}.
+     * @throws IllegalStateException when artifact loading fails or no implementation is found
      */
     public LoadedPluginHandle loadScenarioManagementPlugin(Path artifactPath) {
         return loadPlugin(artifactPath, ScenarioManagementPlugin.class);
@@ -38,6 +39,7 @@ public class PluginArtifactLoader {
      * @param pluginType plugin contract to resolve.
      * @param <T> plugin type.
      * @return loaded plugin handle.
+    * @throws IllegalStateException when classloading fails or no provider is found
      */
     public <T extends Plugin> LoadedPluginHandle<T> loadPlugin(Path artifactPath, Class<T> pluginType) {
         try {
@@ -65,6 +67,7 @@ public class PluginArtifactLoader {
      * @param artifactPath plugin artifact path.
      * @param pluginTypes candidate plugin contracts ordered by priority.
      * @return loaded plugin handle.
+         * @throws IllegalStateException when no candidate type can be loaded from the artifact
      */
     public LoadedPluginHandle<? extends Plugin> loadAnyPlugin(Path artifactPath,
             List<Class<? extends Plugin>> pluginTypes) {
@@ -106,14 +109,29 @@ public class PluginArtifactLoader {
             this.pluginType = pluginType;
         }
 
+        /**
+         * Returns the instantiated plugin provider.
+         *
+         * @return loaded plugin instance
+         */
         public T getPlugin() {
             return plugin;
         }
 
+        /**
+         * Returns the artifact path that produced this plugin instance.
+         *
+         * @return plugin artifact path
+         */
         public Path getArtifactPath() {
             return artifactPath;
         }
 
+        /**
+         * Returns the plugin contract type used for service discovery.
+         *
+         * @return plugin type token
+         */
         public Class<T> getPluginType() {
             return pluginType;
         }

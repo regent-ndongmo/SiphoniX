@@ -18,6 +18,12 @@ import tools.spirals.cerberus237.siphonix.api.plugin.PluginState;
  * <p>This registry provides synchronized operations for registration, replacement,
  * lifecycle forwarding, and typed listing. It is intentionally lightweight and
  * does not persist plugin state across process restarts.
+ * </p>
+ *
+ * <p>
+ * The registry assumes plugin ids are globally unique and uses insertion-order
+ * storage to preserve deterministic iteration semantics.
+ * </p>
  *
  * @author Arléon Zemtsop (Cerberus)
  */
@@ -29,6 +35,7 @@ public class PluginRegistry implements PluginRegistryView {
      * Registers a plugin in CREATED state.
      *
      * @param plugin plugin to register.
+        * @throws IllegalArgumentException when another plugin with the same id already exists
      */
     public void register(Plugin plugin) {
         if (plugins.containsKey(plugin.getId())) {
@@ -42,6 +49,7 @@ public class PluginRegistry implements PluginRegistryView {
      *
      * @param plugin plugin to register.
      * @param context initialization context.
+        * @throws IllegalArgumentException when plugin id is already registered
      */
     public void registerAndInitialize(Plugin plugin, PluginContext context) {
         register(plugin);
@@ -53,6 +61,7 @@ public class PluginRegistry implements PluginRegistryView {
      *
      * @param pluginId plugin identifier.
      * @return registered plugin.
+        * @throws IllegalArgumentException when no plugin exists for the provided id
      */
     public Plugin get(String pluginId) {
         Plugin plugin = plugins.get(pluginId);
@@ -66,6 +75,7 @@ public class PluginRegistry implements PluginRegistryView {
      * Starts a plugin by id.
      *
      * @param pluginId plugin identifier.
+        * @throws IllegalArgumentException when no plugin exists for the provided id
      */
     public void start(String pluginId) {
         get(pluginId).start();
@@ -75,6 +85,7 @@ public class PluginRegistry implements PluginRegistryView {
      * Stops a plugin by id.
      *
      * @param pluginId plugin identifier.
+        * @throws IllegalArgumentException when no plugin exists for the provided id
      */
     public void stop(String pluginId) {
         get(pluginId).stop();
@@ -85,6 +96,7 @@ public class PluginRegistry implements PluginRegistryView {
      *
      * @param pluginId plugin identifier.
      * @return removed plugin.
+    * @throws IllegalArgumentException when no plugin exists for the provided id
      */
     public Plugin remove(String pluginId) {
         Plugin plugin = get(pluginId);
@@ -102,6 +114,7 @@ public class PluginRegistry implements PluginRegistryView {
      * @param replacement replacement plugin with same id.
      * @param context initialization context.
      * @return previous plugin instance.
+    * @throws IllegalArgumentException when replacement id mismatches target id or no plugin exists
      */
     public Plugin replace(String pluginId, Plugin replacement, PluginContext context) {
         if (!pluginId.equals(replacement.getId())) {
@@ -125,7 +138,9 @@ public class PluginRegistry implements PluginRegistryView {
     }
 
     /**
-     * @return all registered plugins.
+     * Returns a read-only view of all registered plugins.
+     *
+     * @return all registered plugins in registration order
      */
     public Collection<Plugin> list() {
         return Collections.unmodifiableCollection(plugins.values());
