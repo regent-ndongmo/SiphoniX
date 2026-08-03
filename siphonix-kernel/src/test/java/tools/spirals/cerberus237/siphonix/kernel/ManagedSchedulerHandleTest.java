@@ -1,5 +1,7 @@
 package tools.spirals.cerberus237.siphonix.kernel;
 
+import tools.spirals.cerberus237.siphonix.api.plugin.ManagedSchedulerHandle;
+
 import org.junit.Assert;
 import org.junit.Test;
 
