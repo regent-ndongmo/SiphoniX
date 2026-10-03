@@ -3,4 +3,4 @@ FROM cerberus237/adaptable-teastore-image:latest
 ARG SIPHONIX
 COPY ${SIPHONIX} /usr/local/tomcat/bin/siphonix.jar
 
-CMD ["sh", "-c", "java -jar /usr/local/tomcat/bin/siphonix.jar & /usr/local/tomcat/bin/start.sh && /usr/local/tomcat/bin/catalina.sh run"]
+CMD ["sh", "-c", "java -jar /usr/local/tomcat/bin/siphonix.jar --wait-for-target false & /usr/local/tomcat/bin/start.sh && /usr/local/tomcat/bin/catalina.sh run"]

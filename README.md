@@ -43,6 +43,14 @@ Discovery mode precedence:
 2. Environment variable `SIPHONIX_PLUGIN_DISCOVERY_MODE`
 3. Default `startup-only`
 
+Target readiness wait precedence:
+1. CLI argument `--wait-for-target <true|false>`
+2. Environment variable `SIPHONIX_WAIT_FOR_TARGET`
+3. Default `true`
+
+When enabled, SiphoniX waits for `SIPHONIX_READINESS_URL` before starting plugins. Use
+`--wait-for-target false` only when the plugins are allowed to start without the target service.
+
 Supported discovery modes:
 1. `startup-only`: load plugins at startup only.
 2. `watch-auto`: continuously scan and automatically load/replace/remove plugins.
@@ -84,13 +92,15 @@ SiphoniX command mode supports:
 ```bash
 java -jar siphonix.jar \
 	--plugin-dir /opt/siphonix/plugins \
-	--plugin-discovery-mode watch-auto
+	--plugin-discovery-mode watch-auto \
+	--wait-for-target true
 ```
 
 ### Command Mode
 
 ```bash
 java -jar siphonix.jar --plugin-dir /opt/siphonix/plugins plugin list
+java -jar siphonix.jar --wait-for-target false --plugin-dir /opt/siphonix/plugins plugin list
 java -jar siphonix.jar --plugin-dir /opt/siphonix/plugins plugin watch status
 ```
 
@@ -101,6 +111,8 @@ java -jar siphonix.jar --plugin-dir /opt/siphonix/plugins plugin watch status
 3. `SIPHONIX_PLUGIN_DIR`: plugin directory fallback.
 4. `SIPHONIX_PLUGIN_DISCOVERY_MODE`: fallback mode (`startup-only|watch-auto|watch-manual`).
 5. `SIPHONIX_PLUGIN_ARTIFACT`: legacy single plugin artifact path.
+6. `SIPHONIX_READINESS_URL`: readiness endpoint queried before plugin startup.
+7. `SIPHONIX_WAIT_FOR_TARGET`: enables or disables readiness waiting; default `true`.
 
 ## Samples
 
@@ -112,3 +124,5 @@ See the per-sample READMEs for run commands and plugin exploration commands.
 
 Detailed architecture and operational notes for the current implementation are available in `documentation/ACTUAL_STATE.md`.
 
+The complete plugin build, deployment, classloading, dependency-resolution, and lifecycle model is
+documented in [`documentation/MODELE_CHARGEMENT_PLUGIN_SIPHONIX.md`](documentation/MODELE_CHARGEMENT_PLUGIN_SIPHONIX.md).

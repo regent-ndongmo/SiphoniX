@@ -19,6 +19,7 @@ services:
       HOST_NAME: "image"
       REGISTRY_HOST: "registry"
       TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
+      SIPHONIX_READINESS_URL: "http://localhost:8080/tools.descartes.teastore.image/rest/image/finished"
       SIPHONIX_CONFIG: "/opt/siphonix/scenarios/${SCENARIO_FILE:-benin-traffic}.json"
       SIPHONIX_PLUGIN_DIR: "/opt/siphonix/plugins"
       SIPHONIX_PLUGIN_DISCOVERY_MODE: "${SIPHONIX_PLUGIN_DISCOVERY_MODE:-watch-auto}"
@@ -45,6 +46,15 @@ services:
       DB_PORT: "3306"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  auth:
+    image: cerberus237/adaptable-teastore-auth
+    restart: unless-stopped
+    environment:
+      HOST_NAME: "auth"
+      REGISTRY_HOST: "registry"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
 
   webui:
     image: cerberus237/adaptable-teastore-webui

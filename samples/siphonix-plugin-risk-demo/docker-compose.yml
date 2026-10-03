@@ -1,0 +1,54 @@
+services:
+  target:
+    image: python:3.11-alpine
+    volumes:
+      - ./fixture/containers:/state
+    command:
+      - python
+      - -c
+      - |
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b'READY')
+            def do_POST(self):
+                if self.path != '/admin/stop':
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                length = int(self.headers.get('Content-Length', '0'))
+                self.rfile.read(length)
+                with open('/state/target.status', 'w', encoding='utf-8') as status:
+                    status.write('STOPPED_BY_UNTRUSTED_PLUGIN_HTTP\n')
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b'CONTROL_ACCEPTED_WITHOUT_AUTHENTICATION')
+            def log_message(self, *args):
+                pass
+        HTTPServer(('0.0.0.0', 8080), Handler).serve_forever()
+
+  siphonix:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - target
+    environment:
+      TARGET_URL: http://target:8080
+      SIPHONIX_READINESS_URL: http://target:8080
+      SIPHONIX_PLUGIN_DIR: /opt/siphonix/plugins
+      SIPHONIX_PLUGIN_DISCOVERY_MODE: startup-only
+      SIPHONIX_DEMO_ROOT: /demo
+      SIPHONIX_DEMO_CONFIRM: YES
+      SIPHONIX_DEMO_TARGET_URL: http://target:8080
+    volumes:
+      - ./plugins:/opt/siphonix/plugins:ro
+      - ./fixture:/demo
+    command: >-
+      java -jar /opt/siphonix/siphonix.jar --wait-for-target false
+      --plugin-dir /opt/siphonix/plugins
+      --plugin-discovery-mode startup-only
+      plugin list
+    restart: "no"

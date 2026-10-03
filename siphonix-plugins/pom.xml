@@ -55,5 +55,7 @@
 
   <modules>
     <module>./adaptiflow-engine-plugin</module>
+    <module>./dependency-conflict-demo-plugin</module>
+    <module>./security-demo-plugin</module>
   </modules>
 </project>

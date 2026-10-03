@@ -19,6 +19,7 @@ services:
       HOST_NAME: "image"
       REGISTRY_HOST: "registry"
       TARGET_URL: "http://image:8080/tools.descartes.teastore.image/rest"
+      SIPHONIX_READINESS_URL: "http://localhost:8080/tools.descartes.teastore.image/rest/image/finished"
       SIPHONIX_CONFIG: "/opt/siphonix/scenarios/${SCENARIO_FILE:-benin-traffic}.xml"
       SIPHONIX_PLUGIN_DIR: "/opt/siphonix/plugins"
       SIPHONIX_PLUGIN_DISCOVERY_MODE: "${SIPHONIX_PLUGIN_DISCOVERY_MODE:-watch-auto}"

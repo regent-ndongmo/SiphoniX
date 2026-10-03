@@ -11,7 +11,7 @@ public class DefaultPluginContextTest {
 
         String expected = System.getenv().getOrDefault(
                 "TARGET_URL",
-                "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest");
+                "http://localhost:8080/tools.descartes.teastore.image/rest");
 
         Assert.assertEquals(expected, context.getTargetServiceUrl());
     }

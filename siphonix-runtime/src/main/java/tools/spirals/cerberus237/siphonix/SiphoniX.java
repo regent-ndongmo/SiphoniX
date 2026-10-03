@@ -3,6 +3,7 @@ package tools.spirals.cerberus237.siphonix;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -38,8 +39,14 @@ public class SiphoniX {
     private static final String PLUGIN_DIRECTORY_ENV = "SIPHONIX_PLUGIN_DIR";
     private static final String PLUGIN_DISCOVERY_MODE_ENV = "SIPHONIX_PLUGIN_DISCOVERY_MODE";
     private static final String PLUGIN_ARTIFACT_ENV = "SIPHONIX_PLUGIN_ARTIFACT";
+    private static final String WAIT_FOR_TARGET_ENV = "SIPHONIX_WAIT_FOR_TARGET";
     private static final String DEFAULT_PLUGIN_DIRECTORY = "/opt/siphonix/plugins";
-    private static final String TARGET_SERVICE_URL = System.getenv().getOrDefault("TARGET_URL", "http://adaptable-teastore-image:8080/tools.descartes.teastore.image/rest");
+    private static final String DEFAULT_TARGET_SERVICE_URL =
+            "http://localhost:8080/tools.descartes.teastore.image/rest";
+    private static final String TARGET_SERVICE_URL =
+            System.getenv().getOrDefault("TARGET_URL", DEFAULT_TARGET_SERVICE_URL);
+    private static final String READINESS_URL = System.getenv().getOrDefault(
+            "SIPHONIX_READINESS_URL", TARGET_SERVICE_URL + "/image/finished");
 
     /**
      * Main startup entrypoint.
@@ -68,8 +75,10 @@ public class SiphoniX {
 
         logger.info("[SiphoniX] Starting Autonomic Manager Sidecar...");
         logger.info("[SiphoniX] Monitoring Target: {}", TARGET_SERVICE_URL);
+        logger.info("[SiphoniX] Readiness endpoint: {}", READINESS_URL);
         logger.info("[SiphoniX] Plugin directory: {}", options.pluginDirectory);
         logger.info("[SiphoniX] Plugin discovery mode: {}", options.discoveryMode.getValue());
+        logger.info("[SiphoniX] Wait for target service: {}", options.waitForTarget);
 
         PluginRegistry pluginRegistry = new PluginRegistry();
         DefaultPluginContext context = new DefaultPluginContext();
@@ -86,6 +95,7 @@ public class SiphoniX {
             runtimeLoader.loadStartupPlugins();
             pluginRegistry.initializeAll(context);
             runtimeLoader.onRuntimeInitialized();
+            awaitTargetServiceIfEnabled(options);
             pluginRegistry.startAll();
             runtimeLoader.onRuntimeStarted();
             runtimeLoader.startWatcher();
@@ -131,6 +141,7 @@ public class SiphoniX {
             runtimeLoader.loadStartupPlugins();
             pluginRegistry.initializeAll(context);
             runtimeLoader.onRuntimeInitialized();
+            awaitTargetServiceIfEnabled(options);
             pluginRegistry.startAll();
             runtimeLoader.onRuntimeStarted();
             executePluginCommand(options.commandTokens, pluginRegistry, runtimeLoader);
@@ -233,13 +244,31 @@ public class SiphoniX {
         throw new IllegalArgumentException("Unsupported plugin command: " + subcommand);
     }
 
+    private static void awaitTargetService() {
+        try {
+            new RemoteServiceReadinessChecker().awaitReady(READINESS_URL);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                    "Interrupted while waiting for the monitored service", ex);
+        }
+    }
+
+    private static void awaitTargetServiceIfEnabled(LaunchOptions options) {
+        if (!options.waitForTarget) {
+            logger.info("[Readiness] Target service wait disabled by configuration");
+            return;
+        }
+        awaitTargetService();
+    }
+
     /**
      * Prints command and daemon usage instructions.
      */
     private static void printUsage() {
         logger.info("[SiphoniX] Usage:");
         logger.info("[SiphoniX]   Daemon mode:");
-        logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <startup-only|watch-auto|watch-manual>]");
+        logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <startup-only|watch-auto|watch-manual>] [--wait-for-target <true|false>]");
         logger.info("[SiphoniX]   Command mode:");
         logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <mode>] plugin list");
         logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <mode>] plugin load <jarPath>");
@@ -248,7 +277,10 @@ public class SiphoniX {
         logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <mode>] plugin stop <pluginId>");
         logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <mode>] plugin reload <pluginId>");
         logger.info("[SiphoniX]     java -jar siphonix.jar [--plugin-dir <path>] [--plugin-discovery-mode <mode>] plugin watch on|off|status");
-        logger.info("[SiphoniX] Environment defaults: SIPHONIX_PLUGIN_DIR, SIPHONIX_PLUGIN_DISCOVERY_MODE, SIPHONIX_CONFIG, SIPHONIX_PLUGIN_ARTIFACT");
+        logger.info("[SiphoniX] Optional in both modes: --wait-for-target <true|false> (default: true)");
+        logger.info("[SiphoniX] Environment defaults: SIPHONIX_PLUGIN_DIR, SIPHONIX_PLUGIN_DISCOVERY_MODE, SIPHONIX_CONFIG, SIPHONIX_PLUGIN_ARTIFACT, SIPHONIX_WAIT_FOR_TARGET");
+        logger.info("[SiphoniX] Readiness endpoint: SIPHONIX_READINESS_URL (defaults to TARGET_URL + /image/finished)");
+        logger.info("[SiphoniX] Target readiness wait is enabled by default");
     }
 
     /**
@@ -284,27 +316,35 @@ public class SiphoniX {
      *
      * @author Arléon Zemtsop (Cerberus)
      */
-    private static final class LaunchOptions {
+    static final class LaunchOptions {
         private final Path pluginDirectory;
         private final PluginDiscoveryMode discoveryMode;
         private final String configPath;
         private final String legacyPluginArtifactPath;
+        private final boolean waitForTarget;
         private final boolean commandMode;
         private final List<String> commandTokens;
 
         private LaunchOptions(Path pluginDirectory, PluginDiscoveryMode discoveryMode, String configPath,
-                String legacyPluginArtifactPath, boolean commandMode, List<String> commandTokens) {
+                String legacyPluginArtifactPath, boolean waitForTarget, boolean commandMode,
+                List<String> commandTokens) {
             this.pluginDirectory = pluginDirectory;
             this.discoveryMode = discoveryMode;
             this.configPath = configPath;
             this.legacyPluginArtifactPath = legacyPluginArtifactPath;
+            this.waitForTarget = waitForTarget;
             this.commandMode = commandMode;
             this.commandTokens = commandTokens;
         }
 
-        private static LaunchOptions fromArgs(String[] args) {
+        static LaunchOptions fromArgs(String[] args) {
+            return fromArgs(args, System.getenv());
+        }
+
+        static LaunchOptions fromArgs(String[] args, Map<String, String> environment) {
             String pluginDirFromArgs = null;
             String discoveryModeFromArgs = null;
+            String waitForTargetFromArgs = null;
             List<String> commandTokens = new ArrayList<>();
 
             for (int i = 0; i < args.length; i++) {
@@ -331,28 +371,59 @@ public class SiphoniX {
                     discoveryModeFromArgs = args[++i];
                     continue;
                 }
+                if (arg.startsWith("--wait-for-target=")) {
+                    waitForTargetFromArgs = arg.substring("--wait-for-target=".length());
+                    continue;
+                }
+                if ("--wait-for-target".equals(arg)) {
+                    if (i + 1 >= args.length) {
+                        throw new IllegalArgumentException("Missing value for --wait-for-target");
+                    }
+                    waitForTargetFromArgs = args[++i];
+                    continue;
+                }
                 commandTokens.add(arg);
             }
 
             String configuredPluginDir = firstNonBlank(
                     pluginDirFromArgs,
-                    System.getenv(PLUGIN_DIRECTORY_ENV),
+                    environment.get(PLUGIN_DIRECTORY_ENV),
                     DEFAULT_PLUGIN_DIRECTORY);
 
             String configuredMode = firstNonBlank(
                     discoveryModeFromArgs,
-                    System.getenv(PLUGIN_DISCOVERY_MODE_ENV),
+                    environment.get(PLUGIN_DISCOVERY_MODE_ENV),
                     PluginDiscoveryMode.STARTUP_ONLY.getValue());
 
-            String configPath = System.getenv(CONFIG_PATH_ENV);
-                String legacyPluginArtifactPath = System.getenv(PLUGIN_ARTIFACT_ENV);
+            String waitForTargetValue = waitForTargetFromArgs != null
+                    ? waitForTargetFromArgs
+                    : firstNonBlank(environment.get(WAIT_FOR_TARGET_ENV), null, Boolean.TRUE.toString());
+            boolean waitForTarget = parseBoolean(waitForTargetValue, "--wait-for-target");
+            String configPath = environment.get(CONFIG_PATH_ENV);
+            String legacyPluginArtifactPath = environment.get(PLUGIN_ARTIFACT_ENV);
             return new LaunchOptions(
                     Path.of(configuredPluginDir),
                     PluginDiscoveryMode.fromValue(configuredMode),
                     configPath,
                     legacyPluginArtifactPath,
+                    waitForTarget,
                     !commandTokens.isEmpty(),
                     commandTokens);
+        }
+
+        boolean waitForTarget() {
+            return waitForTarget;
+        }
+
+        private static boolean parseBoolean(String value, String optionName) {
+            if ("true".equalsIgnoreCase(value)) {
+                return true;
+            }
+            if ("false".equalsIgnoreCase(value)) {
+                return false;
+            }
+            throw new IllegalArgumentException(
+                    "Invalid value for " + optionName + ": '" + value + "' (expected true or false)");
         }
 
         private static String firstNonBlank(String first, String second, String fallback) {

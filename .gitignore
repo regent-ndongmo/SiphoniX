@@ -1,7 +1,11 @@
+.idea/
+
 /bin/
-/target/
-/siphonix-plugins/adaptiflow-engine-plugin/target/
-/siphonix-api/target/
-/siphonix-kernel/target/
-/siphonix-runtime/target/
-/siphonix-plugins/target/
+
+# Maven build outputs, including every nested plugin module.
+**/target/
+
+# Artifacts and disposable data recreated by the plugin risk demo.
+/samples/siphonix-plugin-risk-demo/plugins/
+/samples/siphonix-plugin-risk-demo/fixture/
+/samples/siphonix-plugin-risk-demo/siphonix-app.jar
